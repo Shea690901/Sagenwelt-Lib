@@ -5,6 +5,7 @@ This directory contains the complete documentation for this MudLib as long as it
 
 ### list of submodules
 + gamedriver
-  this MudLib uses the MudOS gamedriver in it's FluffOS flavour
+
+    this MudLib uses the MudOS gamedriver in it's FluffOS flavour
 
 ### original documentation
