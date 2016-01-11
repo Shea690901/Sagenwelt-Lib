@@ -9,5 +9,6 @@
 #include    "/secure/include/std_paths.h"
 
 #include    SEFUN_DIR "file_system.c"
+#include    SEFUN_DIR "logging.c"
 
 /// @}
