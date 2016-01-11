@@ -28,6 +28,7 @@
 // }}}
 
 // daemons {{{
+#define MUD_INFO_D      DAEMON_DIR "mud_info"       ///< mud infos
 // }}}
 
 #endif // __SEC_STD_PATHS_H
