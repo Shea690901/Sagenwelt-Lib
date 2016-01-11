@@ -20,10 +20,6 @@ and containing additional information concerning it's contents
 
     useful addons for using this project.
 
-+   gamedriver
-
-    the fluffos gamedriver
-
 +   src
 
     the mudlib itself
