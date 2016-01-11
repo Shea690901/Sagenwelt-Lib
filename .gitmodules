@@ -1,0 +1,3 @@
+[submodule "gamedriver"]
+	path = gamedriver
+	url = git@github.com:fluffos/fluffos.git
