@@ -59,6 +59,8 @@
             - string short(void)        short description
             - string the_short(void)    [the] short description
 1. standard objects
+    - player
+        - current_working_directory
 1. base rooms
 1. find some prime numbers (runtime config):
     - ~ 13107: hash table size
