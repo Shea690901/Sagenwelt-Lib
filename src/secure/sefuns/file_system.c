@@ -1,0 +1,156 @@
+/// @addtogroup sefun
+/// @{
+/// @file file_system.c
+/// @brief simul_efuns related to file system operations
+/// @author Gwenhwyvar
+/// @version 0.0.0
+/// @date 2015-11-29
+
+// basename {{{
+// --------------------------------------------------------------------------
+/// @brief basename
+///
+/// objects have no plain path but also an unique object id:
+///     /path/to/source_file.c#id
+/// regardless of this id this function will return the ```source_file.c```
+/// part only, just like for 'normal' paths.
+/// @Param path - path to an object or a file or directory
+/// @Returns last component of plain path
+// --------------------------------------------------------------------------
+string basename(string path)
+{
+    string *fn;
+
+    // check if path is an absolute path
+    if(!path || path[0] != '/')
+        error("sefun::basename: illegal argument '" + path + "'");
+
+    // split path at "/"
+    fn = explode(path,"/");
+    // split last element at "#"
+    fn = explode(fn[<1], "#");
+    // return plain filename
+    return fn[0];
+}
+// }}}
+// dirname {{{
+// --------------------------------------------------------------------------
+/// @brief dirname
+///
+/// For ```/path/to/some_file_or_directory#with_optional_öbject_id``` this
+/// function will return ```/path/to```.
+/// @Param path - absolute path
+/// @Returns complete path up to the last '/'
+// --------------------------------------------------------------------------
+string dirname(string path)
+{
+    string *fn;
+
+    // check if path is an absolute path
+    if(!path || path[0] != '/')
+        error("sefun::dirname: illegal argument '" + path + "'");
+
+    fn = explode(path,"/");
+    return implode(fn[0..<2], "/");
+}
+// }}}
+// get_cwd {{{
+// --------------------------------------------------------------------------
+/// @brief get_cwd - get current working directory
+///
+/// This function returns the current working directory of the specified
+/// obiect.
+/// @Param who - who are we querying
+/// @Returns cwd
+/// @todo implement player->query_cwd()
+// --------------------------------------------------------------------------
+string get_cwd(object who)
+{
+    if(!who)
+        error("sefun::get_cwd: illegal argument 'NULL'");
+    // is (or was) who interactive?
+    if(userp(who))
+        return who->query_cwd();
+    // for all other obiects return "dirname(filename)"
+    return dirname(file_name(who));
+}
+// }}}
+// canonical_path {{{
+// --------------------------------------------------------------------------
+/// @brief canonical_path - simplify paths
+///
+/// This function eliminates "//", "." & ".." from the given _absolute_ path
+/// and returns simple, canonical form pointing to the same file
+/// e.g. "/a/b/c//./../d/../../e" will be returned as "/a/e".
+/// if <path> isn't absolute (beginning with a '/') an error will be thrown.
+/// @Param path - absolute path
+/// @Returns canonical form
+// --------------------------------------------------------------------------
+string canonical_path(string path)
+{
+    string *p_elems;
+
+    // check if path is an absolute path
+    if(!path || path[0] != '/')
+        error("sefun::canonical_path: illegal argument '" + path + "'");
+
+    // split the path and remove empty components as well as single dots
+    p_elems = explode(path, "/") - ({ "", "." });
+
+    // search for ".." and delete those together with the preceding element
+    for(int x = 0; x < sizeof(p_elems);)
+    {
+        if(p_elems[x] == "..")
+        {
+            p_elems = p_elems[0..x-2] + p_elems[x+1..];
+            x--;
+        }
+        else
+        {
+            x++;
+        }
+        if(x < 0)
+            x = 0;
+    }
+    if(sizeof(p_elems) == 0)
+        return "/";
+    else
+        return implode(({ "" }) + p_elems, "/");
+}
+// }}}
+// absolute_path {{{
+// --------------------------------------------------------------------------
+/// @brief absolute_path - makes relative paths absolute
+///
+/// If the argument is a relative path, this function will prepend the callers
+/// current working directory. regardless of the type of path it will be
+/// returned as a canonical path, that is without any single or double dots and
+/// without any consecutive slashes.
+/// @Param path - absolute or relative path
+/// @Returns absolute, canonical  path
+// --------------------------------------------------------------------------
+string absolute_path(string path)
+{
+    object who;
+
+    // is path relative?
+    if(path[0] != '/')
+    {
+        // where we called from some other object?
+        if(who = previous_object())
+        {
+            // yes: prepend cwd of this other object
+            path = get_cwd(who) + path;
+        }
+        else
+        {
+            // otherwise prepend our own cwd
+            path = get_cwd(this_object()) + path;
+        }
+    }
+    // now we have an absolute path, which might contain one or more of "//",
+    // "/." or "/.."
+    return canonical_path(path);
+}
+// }}}
+///  @}
