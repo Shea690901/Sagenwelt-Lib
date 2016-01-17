@@ -20,8 +20,10 @@ private int      check_acl(int, string, mixed);
 private mapping  init_privileges(void);
 
 // global vars {{{
+private nosave int debug = FALSE;       ///< got we called with debug flag?
+
 #ifdef __HAS_RUSAGE__
-mapping startup_time;                   ///< time needed to start the mud
+private nosave mapping startup_time;    ///< time needed to start the mud
 #endif
 
 /// @brief acl_*
@@ -34,15 +36,15 @@ mapping startup_time;                   ///< time needed to start the mud
 ///             ]),
 ///     ...
 /// ])
-mapping acl_read,                       ///< acls for file read access
-        acl_write,                      ///< acls for file write access
-        acl_load;                       ///< acls for file load access
+private mapping acl_read,               ///< acls for file read access
+                acl_write,              ///< acls for file write access
+                acl_load;               ///< acls for file load access
 
-mapping privileges;                     ///< object privileges
+private mapping privileges;             ///< object privileges
 // }}}
 
 // std functions {{{
-void create()
+private void create()
 {
 #ifdef __HAS_RUSAGE__
     startup_time = ([]);
@@ -58,19 +60,19 @@ void create()
         privileges = init_privileges();
 }
 
-int clean_up(int arg)
+private int clean_up(int arg)
 {
     return 0;
 }
 
-void reset()
+private void reset()
 {
 }
 // }}}
 
 // helper functions {{{
 // init_acl() {{{
-static mapping init_acl(string type)
+private mapping init_acl(string type)
 {
     string   cfg,
             *lines,
@@ -96,7 +98,7 @@ static mapping init_acl(string type)
 }
 // }}}
 // acl(request, info) {{{
-string *acl(int request, mixed info)
+private string *acl(int request, mixed info)
 {
     mapping acl_list;
     mixed   ret;
@@ -126,12 +128,25 @@ string *acl(int request, mixed info)
 // valid_*
 // returns TRUE if the access is granted, FALSE otherwise
 // --------------------------------------------------------------------------
-static int check_acl(int request, string euid, mixed info)
+public int check_acl(int request, string euid, mixed info)
 {
     string *access, // access control list for given file
             usr,    // user doing the request
             grp,    // the group the user belongs to, if any
            *t;
+
+    switch(request) // check for valid request
+    {
+        case _LIHK:
+        case _READ:
+        case _WRITE:
+            if(info && arrayp(info) &&          // we need info to be an array of two strings
+                (sizeof(info) == 2) &&
+                stringp(info[0]) && stringp(info[1]))
+                break;
+        default:                                // everything else can't be valid
+            return FALSE;
+    }
 
     // linking is allowed if euid may read the source and write the target
     if(request == _LINK)
@@ -155,7 +170,7 @@ static int check_acl(int request, string euid, mixed info)
 }
 // }}}
 // init_privileges() {{{
-static mapping init_privileges(void)
+private mapping init_privileges(void)
 {
     string   cfg,
             *lines,
@@ -190,7 +205,7 @@ static mapping init_privileges(void)
 /// will call flag("debug") in the master object during initialization.
 /// @Param driver_flag
 // --------------------------------------------------------------------------
-void flag(string driver_flag)
+private void flag(string driver_flag)
 {
 #ifdef __HAS_RUSAGE__
     mapping before;         ///< rusage bevore loading object
@@ -200,6 +215,9 @@ void flag(string driver_flag)
 #endif
     switch driver_flag
     {
+        "debug":
+            debug = TRUE;
+            break;
         default:
             error(sprintf("Unknown driver-flag '%s'â€¦", driver_flag));
             break;
@@ -229,7 +247,7 @@ void flag(string driver_flag)
 /// @Param load_empty - if true no preloading is done
 /// @Returns array of files to preload
 // --------------------------------------------------------------------------
-string *epilog(int load_empty)
+private string *epilog(int load_empty)
 {
     string  content;
     string  *ret;
@@ -253,22 +271,12 @@ string *epilog(int load_empty)
         // ignore empty lines or comment lines
         if(!line || line == "" || line[0] == '#')
             continue;
-        // add lines ending in ".c" direct to return array
-        if(line[<2..<1] == ".c")
-        {
-            if(!seen[line])
-            {
-                ret += ({ line });
-                seen[line] = 1;
-            }
-            else
-                seen[line] += 1;
-        }
-        // or include all "*.c" from directories
-        else if(line[<1] == '/')
+        // include all "*.c" from directories
+        if(line[<1] == '/')
         {
             foreach(string entry in get_dir(line + "*.c"))
             {
+                entry = entry[0..<3];       // cut of '.c' file ending
                 if(!seen[entry])
                 {
                     ret += ({ entry });
@@ -277,6 +285,19 @@ string *epilog(int load_empty)
                 else
                     seen[entry] += 1;
             }
+        }
+        // add all other lines direct to return array
+        else
+        {
+            if(line[<2..<1] == ".c")
+                line = line[0..<3];         // cut of ".c" if present
+            if(!seen[line])
+            {
+                ret += ({ line });
+                seen[line] = 1;
+            }
+            else
+                seen[line] += 1;
         }
     }
 #ifdef __HAS_RUSAGE__
@@ -302,7 +323,7 @@ string *epilog(int load_empty)
 /// Typical behavoir is to use load_object() to attempt to load the file.
 /// @Param str - file to be preloaded
 // --------------------------------------------------------------------------
-void preload(string str)
+private void preload(string str)
 {
     string  err;            ///< error while loading object
 #ifdef __HAS_RUSAGE__
@@ -315,19 +336,13 @@ void preload(string str)
 
     write("Preloading: '" + str + "'...");
 
-    // directories or empty/non existing files can't be loaded
-    if(file_size(str) <= 0)
-        write("Error: '" + str + "' is directory or empty...");
+    // everything either has
+    if(err = catch(load_object(str)))
+        // compile errors
+        write("Got error: '" + err + "'...");
     else
-    {
-        // everything else either has
-        if(err = catch(load_object(str)))
-            // compile errors
-            write("Got error: '" + err + "'...");
-        else
-            // or loads fine...
-            write("Done!...");
-    }
+        // or loads fine...
+        write("Done!...");
 #ifdef __HAS_RUSAGE__
     after = rusage();
     if(sizeof(before) && sizeof(after))
@@ -362,10 +377,10 @@ void preload(string str)
 /// @Param current_object
 /// @todo make use of parameters
 // --------------------------------------------------------------------------
-void crash(string crash_message, object command_giver, object current_object)
+private void crash(string crash_message, object command_giver, object current_object)
 {
     syslog(LOG_KERN|LOG_EMERG, "master::crash(\"%s\", %O, %O)", crsh_message, commmd_giver, current_object);
-    tell(users(), "Game Driver shouts: Ack! I think the game is crashing!\n");
+    // tell_users("Game Driver shouts: Ack! I think the game is crashing!\n");
     users()->quit();
 }
 // }}}
@@ -384,9 +399,9 @@ void crash(string crash_message, object command_giver, object current_object)
 /// @Returns backbone uid
 /// @Attention This routine is only used if PACKAGE_UIDS is used.
 // --------------------------------------------------------------------------
-string get_bb_uid()
+private string get_bb_uid()
 {
-    return BB_UID;
+    return creator_file("/std");;
 }
 // }}}
 // get_root_uid {{{
@@ -399,9 +414,9 @@ string get_bb_uid()
 /// @Returns root uid
 /// @Attention This routine is only used if PACKAGE_UIDS is used.
 // --------------------------------------------------------------------------
-string get_root_uid()
+private string get_root_uid()
 {
-    return ROOT_UID;
+    return credit("/secure");;
 }
 // }}}
 // author_file {{{
@@ -417,58 +432,61 @@ string get_root_uid()
 ///
 /// For this mudlib player or wizard names are lowercase while domain names
 /// are capitalized
-/// @Attention This routine is only used if PACKAGE_MUDLIB_STATS is used.
+/// Also this midlib uses this function to get ownership of directories for
+/// the 'ls' commamd
+/// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
+/// is used.
 /// @Param file - absolute path to source of some object
 /// @Returns name of author
 // --------------------------------------------------------------------------
-string author_file (string file)
+public string author_file (string file)
 {
     string *path;
     int     sp,
             fs;
 
-    path = explode(file, "/");      // path[0] == "" !!!
+    if(file[0] != '/')                  // strange argument, without any '/'...
+        return UNKNOWN_UID;
+
+    path = explode(file, "/");          // path[0] == "" !!!
     sp   = sizeof(path);
     fs   = file_size(file);
 
-    if(sp == 2)
-        return fs == -2 ?
-            BB_UID :                // the directories belong to backbone
-            UNKNOWN_UID;            // there should be no objects in '/'!
-
-    if(path[1] == "players")
+    switch(path[1])
     {
-        // ""/"players"/"w"/"wiz"/"file.c"
-        // 0  1         2   3     4
-        if((sp > 4) ||
-                (sp == 4) && (fs == -2))
-            return path[3];         // file is owned by some player
-        else
-            return fs == -2 ?
-                BB_UID :            // the directories belong to backbone
-                UNKNOWN_UID;        // there should be no objects in
-                                    // '/players' outside the user dirs!
-    }
-    else if(path[1] == "Domains")   // file belongs to some domain
-    {
-        // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
-        // 0  1         2         3         4     5
-        if((path[3] == "members") &&
+        case "players":                 // some player file
+            // ""/"players"/"w"/"wiz"/"file.c"
+            // 0  1         2   3     4
+            if((sp > 4) ||
+                    (sp == 4) && (fs == -2))
+                return path[3];         // file/directory is owned by some player
+            else if(fs == -2)
+                return BB_UID;          // the other directories belong to backbone
+            break;
+        case "Domains":                 // file belongs to some domain
+            // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
+            // 0  1         2         3         4     5
+            if((sp > 4) &&
+                (path[3] == "members") &&
                 ((sp > 5) ||
-                 ((sp == 5) && (fs == -2))))
-            return path[4];         // but is owned by one of it's members
-        // ""/"Domains"/"Example"/"file.c"
-        // 0  1         2         3
-        else if((sp > 3) ||
-                ((sp == 3) && (fs == -2)))
-            return path[2];         // this â‚£ile truly belongs to the domain
-        else
-            return fs == -2 ?
-                BB_UID :            // the directories belong to backbone
-                UNKNOWN_UID;        // there should be no objects in
-                                    // '/Domains' outside the domain dirs!
+                ((sp == 5) && (fs == -2))))
+                return path[4];         // but is owned by one of it's members
+            // ""/"Domains"/"Example"/"file.c"
+            // 0  1         2         3
+            else if((sp > 3) ||
+                    ((sp == 3) && (fs == -2)))
+                return path[2];         // this f£ile truly belongs to the domain
+            else if(fs == -2)
+                return BB_UID;          // the other directories belong to backbone
+            break;
+        case "std":                     // everything here belongs backbone
+            return BB_UID;
+            break;
+        case "secure":                  // this all security relevant!!!
+            return ROOT_UID;
+            break;
     }
-    return BB_UID;                  // everything else is backbone
+    return UNKNOWN_UID;                 // everything else shouldn't have any privileges
 }
 // }}}
 // domain_file {{{
@@ -482,51 +500,54 @@ string author_file (string file)
 /// heart_beats, etc).
 ///
 /// For this mudlib domain names are uppercase
+/// Also this midlib uses this function to get groupmembership of directories
+/// for the 'ls' commamd
+/// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
+/// is used.
 /// @Param file
 /// @Returns domain the file belongs to
 // --------------------------------------------------------------------------
-string domain_file(string file)
+public string domain_file(string file)
 {
     string *path;
     int     sp,
             fs;
 
+    if(file[0] != '/')                  // strange argument, without any '/'...
+        return UNKNOWN_DOMAIN;
+
     path = explode(file, "/");      // path[0] == "" !!!
     sp   = sizeof(path);
     fs   = file_size(file);
 
-    if(sp == 2)
-        return fs == -2 ?
-            BB_DOMAIN :             // the directories belong to backbone
-            UNKNOWN_DOMAIN;         // there should be no objects in '/'!
-
-    if(path[1] == "players")
+    switch(path[1])
     {
-        // ""/"players"/"w"/"wiz"/"file.c"
-        // 0  1         2   3     4
-        if((sp > 4) ||
-                (sp == 4) && (fs == -2))
-            return (MUD_INFO_D->is_wiz(path[3])) ?
-                    WIZARD_DOMAIN : // wizard
-                    PLAYER_DOMAIN;  // mortal
-        else
-            return fs == -2 ?
-                BB_DOMAIN :         // the directories belong to backbone
-                UNKNOWN_DOMAIN;     // there should be no objects in
-                                    // '/players' outside the user dirs!
+        case "players":                 // some player file
+            // ""/"players"/"w"/"wiz"/"file.c"
+            // 0  1         2   3     4
+            if((sp > 4) ||
+                    (sp == 4) && (fs == -2))
+                return (MUD_INFO_D->is_wiz(path[3])) ?
+                        WIZARD_DOMAIN : // wizard
+                        PLAYER_DOMAIN;  // mortal
+            else if(fs == -2)
+                return BB_DOMAIN;       // the other directories belong to backbone
+            break;
+        case "Domains":                 // file belongs to some domain
+            // ""/"Domains"/"Example"/"file.c"
+            // 0  1         2         3
+            if((sp > 3) ||
+                    ((sp == 3) && (fs == -2)))
+                return path[2];         // this f£ile truly belongs to the domain
+            else if(sp == 2)
+                return BB_DOMAIN;       // the '/Domains' directory belongs to backbone
+            break;
+        case "std":                     // everything here belongs backbone
+        case "secure":                  // this to is backbone
+            return BB_DOMAIN;
+            break;
     }
-    else if(path[1] == "Domains")   // file belongs to some domain
-    {
-        // ""/"Domains"/"Example"/"file.c"
-        // 0  1         2         3
-        if((sp > 3) ||
-                ((sp == 3) && (fs == -2)))
-            return path[2];         // this â‚£ile truly belongs to the domain
-        else
-            return UNKNOWN_DOMAIN;  // there should be no objects in
-                                    // '/Domains' outside the domain dirs!
-    }
-    return BB_DOMAIN;               // everything else is backbone
+    return UNKNOWN_DOMAIN;              // everything else shouldn't have any privileges
 }
 // }}}
 // creator_file {{{
@@ -542,33 +563,59 @@ string domain_file(string file)
 /// compile-time of the driver, and creator_file() returns the backbone uid
 /// (as specified by get_bb_uid() in the master object), the object is given
 /// the uid and euid of the object that loaded it.
+///
+/// This mudlib uses neither AUTO_SETEUID nor AUTO_TRUST_BACKBONE!
+/// Also creator is always <user>:<group>.
 /// @Param filename - absolute path to object o be loaded/cloned
 /// @Returns name of creator
 // --------------------------------------------------------------------------
-string creator_file(string filename)
+private string creator_file(string filename)
 {
     string *path;
-    string uid;
+    int     sp;
+    string  uid = BB_UID;
+    string  gid = BB_DOMAIN;
 
     path = explode(filename, "/");
+    sp   = sizeof(path);
 
     switch(path[1])
     {
         "secure":
             uid = ROOT_UID; // privileged object
             break;
-        "map":              // file belonags to backbone
-        "std":
-            uid = BB_UID;
+        "std":              // standard object
             break;
-        "players":          // file belongs to some player
-        "Domains":          // or a Domain
-            uid = sprintf("%s:%s", author_file(filename), domain_file(filename));
+        "players":
+            if(sp > 4)      // object belongs to some player
+            {
+                uid = author_file(filename);
+                gid = MUD_INFO_D->get_group(path[3]);
+            }
+            else            // here shouldn't be any object stored
+            {
+                uid = UNKNOWN_UID;
+                gid = UNKNOWN_DOMAIN;
+            }
+            break;
+        "Domains":
+            if(sp > 3)      // object belongs to some domain
+            {
+                uid = author_file(filename);
+                gid = MUD_INFO_D->get_group(path[3]);
+            }
+            else            // here shouldn't be any object stored
+            {
+                uid = UNKNOWN_UID;
+                gid = UNKNOWN_DOMAIN;
+            }
             break;
         default:
             uid = UNKNOWN_UID;
+            gid = UNKNOWN_DOMAIN;
+            break;
     }
-    return uid;
+    return sprintf("%s:%s", uid, gid));
 }
 // }}}
 // privs_file {{{
@@ -582,7 +629,7 @@ string creator_file(string filename)
 /// @Param file
 /// @Returns privilege level
 // --------------------------------------------------------------------------
-string privs_file(string file)
+private string privs_file(string file)
 {
     return match_path(privileges, file);
 }
@@ -599,7 +646,7 @@ string privs_file(string file)
 /// @Param victim
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_bind(object doer, object owner, object victim)
+private int valid_bind(object doer, object owner, object victim)
 {
     // master and simul_efuns are allowed
     if((doer == TO()) || (doer == find_object(SEFUNS)))
@@ -622,7 +669,7 @@ int valid_bind(object doer, object owner, object victim)
 /// @Param info
 /// @Returns
 // --------------------------------------------------------------------------
-mixed valid_database(object doer, string action, mixed *info)
+private mixed valid_database(object doer, string action, mixed *info)
 {
     switch(action)
     {
@@ -658,7 +705,7 @@ mixed valid_database(object doer, string action, mixed *info)
 /// @Param ob
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_hide(object ob)
+private int valid_hide(object ob)
 {
     // only with PRIV_HIDE
     if(test_bit(query_privs(ob), PRIV_HIDE))
@@ -681,7 +728,7 @@ int valid_hide(object ob)
 /// @Param to   - this link
 /// @Returns 1 if link granted, 0 otherwise
 // --------------------------------------------------------------------------
-int valid_link(string from, string to)
+private int valid_link(string from, string to)
 {
     object  ob;
     string  euid;
@@ -718,9 +765,10 @@ int valid_link(string from, string to)
 /// @Param ob
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_object(object ob)
+private int valid_object(object ob)
 {
     string file,
+           dir,
            euid;
     object po;
     int    clone;
@@ -728,16 +776,13 @@ int valid_object(object ob)
     file  = file_name(ob);
     clone = clonep(ob);
 
+    // no objects stored in hidden files
     // everything from /secure and it's subdirs may be loaded(!)
-    if(!clone && !strsrch(dir, "/secure"))
-        return TRUE;
-
-    // no objects from temporary files
-    if(!strsrch(file, "/tmp") || !strsrch(file, "/var/tmp"))
-        return FALSE;
-
     // otherwise we ask the acl's
-    if(check_acl(_LOAD, euid = geteuid(po = PO()), ({ po, file})))
+    if((strsrch(file, "/.") == -1) && (
+        ((file[0..7] == "/secure/") && !clone) ||
+        check_acl(_LOAD, euid = geteuid(po = PO()), ({ po, file}))
+        ))
         return TRUE;
 
     // everything else fails
@@ -788,7 +833,7 @@ int valid_object(object ob)
 /// @Param mainfile
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_override(string file, string efun_name, string mainfile)
+private int valid_override(string file, string efun_name, string mainfile)
 {
     // everything within "/secure" or with correct privilege is allowed
     // we don't have an object yet!!!
@@ -815,7 +860,7 @@ int valid_override(string file, string efun_name, string mainfile)
 /// @Param func
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_read(string file, object ob, string func)
+public int valid_read(string file, object ob, string func)
 {
     string  euid;
 
@@ -828,9 +873,10 @@ int valid_read(string file, object ob, string func)
         return TRUE;
 
     // everything else fails
-    syslog(LOG_AUTH|LOG_ERR,
-            "Privilege violation: valid_read(\"%s\", %O[%s], \"%s\")",
-            file, ob, euid, func);
+    if(origin() == ORIGIN_DIVER)        // log only for actual requets
+        syslog(LOG_AUTH|LOG_ERR,
+                "Privilege violation: valid_read(\"%s\", %O[%s], \"%s\")",
+                file, ob, euid, func);
     return FALSE;
 }
 // }}}
@@ -846,39 +892,44 @@ int valid_read(string file, object ob, string func)
 /// @Param t_euid - argument to seteuid
 /// @Returns 1 if seteuid is granted, 0 otherwise
 // --------------------------------------------------------------------------
-int valid_seteuid(object ob, string euid)
+private int valid_seteuid(object ob, string t_euid)
 {
     string  uid,
+           *uids
             euid,
-           *grps,
-            usri,
-            t;
+           *euids,
+           *t_euids,
+           *grps;
 
-    uid  = getuid(ob);
-    euid = geteuid(ob);
+    uid     = getuid(ob);
+    euid    = geteuid(ob);
 
     // as long as euid isn't set or one has the right privilege one can become
     // oneself
     if((!euid || test_bit(query_privs(ob), PRIV_SETEUID)) && (uid == t_euid))
         return TRUE;
 
+    uids    = explode(uid, ":");
+    euids   = explode(euid, ":");
+    t_euids = explode(t_euid, ":");
+
     // effective ROOT_UID may change it's euid to any other
-    else if(euid == ROOT_UID)
+    if(euids[0] == ROOT_UID)
         return TRUE;
 
     // interactives may change their current group to any they are a member of
-    else if(ob == TI())
+    if(ob == TI())
     {
-        grps = explode(uid, ":");
-        usr  = grps[0];
-        grps = get_groups(usr);
-        if(!strsrch(t_euid, t = sprintf("%s:", usr)) &&
-                (member_array(replace_string(t_uid, t, ""), grps) != -1))
-            return TRUE;
+        if(uids[0] == t_euids[0])
+        {
+            grps = MUD_INFO_D->get_groups(uids[0]);
+            if(member_array(t_euids[1], grps) != -1)
+                return TRUE;
+        }
     }
 
     // one can allways lower ones privileges
-    else if((t_euid == NOBODY_UID) || (t_euid == NOBODY_UID ":" NOBODY_DOMAIN))
+    else if((t_euids[0] == NOBODY_UID) || (t_euids[1] == NOBODY_DOMAIN))
         return TRUE;
 
     // everything else fails
@@ -901,7 +952,7 @@ int valid_seteuid(object ob, string euid)
 /// @Param ob
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_shadow(object ob)
+private int valid_shadow(object ob)
 {
     object po  = PO();
     int    ret = TRUE;
@@ -949,7 +1000,7 @@ int valid_shadow(object ob)
 /// @Param info
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_socket(object ob, string func, mixed *info)
+private int valid_socket(object ob, string func, mixed *info)
 {
     string privs = query_privs(ob);
 
@@ -995,7 +1046,7 @@ int valid_socket(object ob, string func, mixed *info)
 /// @Param func
 /// @Returns
 // --------------------------------------------------------------------------
-int valid_write(string file, object ob, string func)
+public int valid_write(string file, object ob, string func)
 {
     string  euid;
 
@@ -1008,9 +1059,10 @@ int valid_write(string file, object ob, string func)
         return TRUE;
 
     // everything else fails
-    syslog(LOG_AUTH|LOG_ERR,
-            "Privilege violation: valid_write(\"%s\", %O[%s], \"%s\")",
-            file, ob, euid, func);
+    if(origin() == ORIGIN_DIVER)    // log only for actual requets
+        syslog(LOG_AUTH|LOG_ERR,
+                "Privilege violation: valid_write(\"%s\", %O[%s], \"%s\")",
+                file, ob, euid, func);
     return FALSE;
 }
 // }}}
@@ -1034,7 +1086,7 @@ int valid_write(string file, object ob, string func)
 /// @Returns either new player object or 0, in the latter case the connection
 /// will be terminated.
 // --------------------------------------------------------------------------
-object connect(int port)
+private object connect(int port)
 {
     string  err;
     object  l_ob;
@@ -1046,7 +1098,7 @@ object connect(int port)
         case SSL_PORT:
             break;
         default:
-            write(sprintf("This shouldn't have happenedâ€¦ got portnr.: %05d\n", port));
+            write(sprintf("This shouldn't have happened¦ got portnr.: %05d\n", port));
             return 0;
     }
 
@@ -1082,7 +1134,7 @@ object connect(int port)
 /// ___MSSP-REQUEST___ as character name.
 /// @Returns - a mapping containig the MSSP info
 // --------------------------------------------------------------------------
-mapping get_mud_stats()
+private mapping get_mud_stats()
 {
     syslog(LOG_KERN|LOG_INFO, "mssp-telopt query");
     return MUD_INFO_D->mssp_telopt();
@@ -1128,7 +1180,7 @@ mapping get_mud_stats()
 /// @attention This function is only called if MUDLIB_ERROR_HANDLER is defined.
 // --------------------------------------------------------------------------
 // error_handler copied from testsuite
-void error_handler(mapping error, int caught)
+private void error_handler(mapping error, int caught)
 {
     object ob;
     string str;
@@ -1166,7 +1218,7 @@ void error_handler(mapping error, int caught)
 /// @Param message - error message during compilation
 /// @todo still needs work with sefun::syslog/syslogd
 // --------------------------------------------------------------------------
-void log_error(string file, string message)
+private void log_error(string file, string message)
 {
     syslog(LOG_USER|LOG_ERR, "(%s): %s", file, message);
 }
@@ -1188,7 +1240,7 @@ void log_error(string file, string message)
 /// @Param who
 /// @Returns filename
 // --------------------------------------------------------------------------
-string get_save_file_name(string file, object who)
+private string get_save_file_name(string file, object who)
 {
     return sprintf("%s.edsav", file);
 }
@@ -1202,7 +1254,7 @@ string get_save_file_name(string file, object who)
 /// @Param rel_path - relative path to some file
 /// @Returns - absolute path to same file (cleaned)
 // --------------------------------------------------------------------------
-string make_path_absolute(string rel_path)
+private string make_path_absolute(string rel_path)
 {
     return canonical_path(absolute_path(rel_path));
 }
@@ -1239,7 +1291,7 @@ string parse_command_all_word ()
 /// parse_command() efun.
 /// @Returns
 // --------------------------------------------------------------------------
-string *parse_command_prepos_list ()
+private string *parse_command_prepos_list ()
 {
     return ({ "down", "up", "in", "on", "out", "within", "without", "into",
             "onto", "inside", "outside", "across", "against", "around", "at",
@@ -1278,11 +1330,52 @@ string *parse_command_prepos_list ()
 /// @Param pathname
 /// @Returns new object or 0
 // --------------------------------------------------------------------------
-object compile_object(string pathname)
+private object compile_object(string pathname)
 {
-    if(pathname[0..4] == "/map/")               // a room on the map
-        return MAP_D->get_room(pathname[5..]);  // ask the map daemon
+    if(pathname[0..8] == "/std/map/")           // a room on the map
+        return MAP_D->get_room(pathname[9..]);  // ask the map daemon
     return 0;                                   // no others used as of yet
+}
+// }}}
+// get_include_path {{{
+/// @brief get_include_path
+///
+/// dynamic generation of include path based on the compiled object
+/// @param file - absolute path to the object storage in disk
+/// @return - array of include directories
+/// ':DEFAULT:' will be replaced by runtime configuration
+private string *get_include_path(string file)
+{
+    string *path;
+
+    path = explode(file, "/");
+    switch(path[1])
+    {
+        case "secure":
+            return ({ ".", "/secure/include" });
+            break;
+        case "players":
+            // ""/"players"/"w"/"wiz"/"file.c"
+            // 0  1         2   3     4
+            return ({ ".",
+                        "/players/" + path[2] + "/" + path[3] + "/include",
+                        ":DEFAULT:" });
+            break;
+        case "Domains":
+            // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
+            // 0  1         2         3         4     5
+            if((sizeof(sp) > 5) && (path[3] == "members"))
+                return ({ ".",
+                            "/Domains/" + path[2] + "/members/" + path[4] + "/include",
+                            "/Domains/" + path[2] + "/include",
+                            ":DEFAULT:" });
+            else
+                return ({ ".",
+                            "/Domains/" + path[2] + "/include",
+                            ":DEFAULT:" });
+                break;
+    }
+    return ({ ":DEFAULT:" });
 }
 // }}}
 // object_name {{{
@@ -1295,7 +1388,7 @@ object compile_object(string pathname)
 /// @Param ob - object
 /// @Returns
 // --------------------------------------------------------------------------
-string object_name (object ob)
+private string object_name (object ob)
 {
     if(!ob)                     // ob no longer exists
         return "<destructed>";
@@ -1314,7 +1407,7 @@ string object_name (object ob)
 /// @Param user
 /// @Returns
 // --------------------------------------------------------------------------
-int retrieve_ed_setup(object user)
+private int retrieve_ed_setup(object user)
 {
     if(!user)
         return 0;
@@ -1332,7 +1425,7 @@ int retrieve_ed_setup(object user)
 /// @Param config
 /// @Returns
 // --------------------------------------------------------------------------
-int save_ed_setup(object user, int config)
+private int save_ed_setup(object user, int config)
 {
     if(!user)
         return FALSE;

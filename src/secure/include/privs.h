@@ -31,7 +31,6 @@
 #define NOBODY_DOMAIN   "__Nodomain__"                  // gid with no special privileges
 #define UNKNOWN_DOMAIN  "__Unknown__"                   // invalid domain
 
-#ifdef __SECURE
 // requests for check_acl
 #define _LINK   0
 #define _READ   1
@@ -52,7 +51,6 @@
 // __NEXT_PRIV always shows the next free PRIV number
 // this value must __never__ decrease!!!
 #define __NEXT_PRIV     7
-#endif
 
 #endif // __SEC_PRIVS_H
 
