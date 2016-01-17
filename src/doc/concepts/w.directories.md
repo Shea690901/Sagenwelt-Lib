@@ -17,9 +17,6 @@ This file describes the directory structure used by this mudlib.
 - /doc
     Here one can find the complete ingame documentation
 
-- /include
-    This directory contains all standard includes for user defined objects
-
 - /players
     Each player can find his/her home directory here, for a better overview
     those home directories are sorted according their first letter into
@@ -30,20 +27,25 @@ This file describes the directory structure used by this mudlib.
     - rooms
     - log
 
-- /save
-    Here kne can fknd the player save files. Like with their home directories
-    sorted into subdirs according their first letter.
-
 - /secure
     The objects within this directory are critical for the function of this
     mudlib. Most notable are
     - master.c      - the first object to be loaded, without it nothing goes
     - simul_efun.c  - provides all sefun's
 
+- /std/include
+    standard inherits
+    Here one can find all neccessary includes need by the standard
+    inherits/objects as well as the world map and standard room
+
 - /std/lib
     standard inherits
     Whatever you are trying to do, first take a look here if it is already
     done, even if it's only partial...
+
+- /std/map
+    world map
+    Parts may be delegated to some domain.
 
 - /std/obj
     standard objects
@@ -64,6 +66,10 @@ This file describes the directory structure used by this mudlib.
 - /var/log
     This is the place to look for system logs. Not all of them are readable by
     everyone!
+
+- /var/player_save
+    Here one can fknd the player save files. Like with their home directories
+    sorted into subdirs according their first letter.
 
 - /var/save
     These too are configurations for the system critical objects, but where
