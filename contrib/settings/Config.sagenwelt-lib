@@ -52,7 +52,7 @@ swap file : /secure/swap/FluffOS.swap
 debug log file : debug.log
 
 # This is an include file which is automatically #include'd in all objects
-global include file : "/include/std.h"
+global include file : "/secure/include/std.h"
 
 # default message when error() occurs (optional)
 default error message : Ups!
