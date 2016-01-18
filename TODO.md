@@ -4,6 +4,8 @@
     - in progress
 1. master
     - in progress
+    - check_acl needs additional code for missing UPRIVs
+    - /var/cfg/*.acl need to be completed
 1. simul_efuns
     - in progress
 1. daemons
