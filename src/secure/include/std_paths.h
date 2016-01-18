@@ -20,6 +20,8 @@
 
 // files {{{
 #define PRELOADS        CFG_DIR "PRELOADS"          ///< file containing filenames to be preloaded
+#define ACL_READ_CFG    CFG_DIR "Read.acl"
+#define ACL_WRITE_CFG   CFG_DIR "Write.acl"
 // }}}
 
 // objects {{{

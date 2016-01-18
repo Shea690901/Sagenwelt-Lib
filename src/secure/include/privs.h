@@ -10,6 +10,10 @@
 #define __SEC_PRIVS_H
 
 // user privileges
+#define UPRIV_ALL       "__ALL__"                       // no restrictions
+#define UPRIV_AUTHOR    "__AUTHOR__"                    // matching uid
+#define UPRIV_DOMAIN    "__DOMAIN__"                    // matching gid
+
 #define UPRIV_MORTAL    "__Player__"                    // normal player
 #define UPRIV_ELDER     "__Elder__"                     // high level mortal
 #define UPRIV_WIZARD    "__Wizard__"                    // normal wizard
