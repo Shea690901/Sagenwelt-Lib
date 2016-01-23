@@ -37,7 +37,7 @@ string mssp_telopt()
         "HOSTNAME"              : __MUD_IP__,   ///< @todo host_lookup?
         "PORT"                  : itoa(query_host_port()),
         "CODEBASE"              : "Sagenwelt 0.0.0",            // Please don't change this one...
-        "CONTACT"               : "your@email.address",
+        "CONTACT"               : "your@email.address",         // But this needs changing
         "CREATED"               : "2015",
         "ICON"                  : "http://"+__MUD_IP__+"/favicon.ico",
         "IP"                    : __MUD_IP__,
@@ -54,13 +54,13 @@ string mssp_telopt()
         "GAMEPLAY-NOTES"        : "Part Educational",
         "STATUS"                : "Alpha",
         "GAMESYSTEM"            : "Custom",
-        "GAMESYSTEM-NOTE§"      : "D&D-based",
-        "INTERMUD"              : (sizeof(intermud) ? implode(intermud, ,"\t") : "0"),
+        "GAMESYSTEM-NOTE§"     : "D&D-based",
+        "INTERMUD"              : (sizeof(intermud) ? implode(intermud, "\t") : "0"),
 
             // world
         "AREAS"                 : "0",
         "HELPFILES"             : "1",
-        "HELPFILES-NOTES"       : "each command, and hundreds of other docs",
+        "HELPFILES-NOTES"       : "each command, and other docs",
         "MOBILES"               : "N/A",
         "MOBILES-NOTES"         : "npc's can be cloned, so there can be thousands",
         "OBJECTS"               : "N/A",
@@ -88,7 +88,7 @@ string mssp_telopt()
         "XTERM 256 COLORS"      : "0",
 
             // commercial
-        "PAY TO PLAY"           : "0",                          // disallowed by driver
+        "PAY TO PLAY"           : "0",                          // !!! disallowed by driver !!!
         "PAY FOR PERKS"         : "0",
 
             // hiring
@@ -130,7 +130,7 @@ string mssp_telopt()
 /// @brief mssp_login
 ///
 /// This function takes the mapping used for the telopt-interface and converts
-/// it to a string representation which may be us3d for the login-interface.
+/// it to a string representation which may be used for the login-interface.
 /// @Returns MSSP-info formated as string
 // --------------------------------------------------------------------------
 string mssp_login()
