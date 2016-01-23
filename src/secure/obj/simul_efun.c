@@ -10,5 +10,6 @@
 
 #include    SEFUN_DIR "file_system.c"
 #include    SEFUN_DIR "logging.c"
+#include    SEFUN_DIR "objects.c"
 
 /// @}
