@@ -8,23 +8,34 @@
     - /var/cfg/*.acl need to be completed
 1. simul_efuns
     - in progress
+    - fast prng with seed for guarantied reproducable random numbers
 1. daemons
     - mud_info (needed for master functionality!)
         holds
-        - wizlist
-        - domainlist
-        - groupmemberships
+        - wiz list
+        - domain list
+        - group memberships
     - syslogd (needed for master functionality!)
+    - tmp_d holds ownership of files/dirs within public tmp-dirs (needed for master functionality!)
     - crond
     - maild
     - newsd
     - mapd (world map)
     - ftpd (mostlikely support for external ftpd only)
-    - tmp_d holds ownership of files/dirs within public tmp-dirs
+    - httpd (mostlikely support for external ftpd only)
 1. privilege system (combined with daemons)
     - in progress
     - needs acl's for file/socket access inside master
 1. login object
+1. player object
+    - needed functions for
+        - master
+            - bool is_elder(void)
+            - bool is_wiz(void)
+            - bool is_lord(string)
+            - bool is_arch(void)
+            - bool is_admin(void)
+            - string *get_groups(void)
 1. standard inherits
 1. standard objects
 1. base rooms
