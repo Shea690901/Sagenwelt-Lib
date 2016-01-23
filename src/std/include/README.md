@@ -3,5 +3,6 @@
 
 This directory contains the standard include files
 
--   driver/
+-   driver@
     include files supplied by gamedriver
+    symlink to _/secure/include/driver_

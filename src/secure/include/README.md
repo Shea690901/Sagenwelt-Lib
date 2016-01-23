@@ -3,6 +3,8 @@
 
 This directory contains special includes for privileged objects
 
+-   driver/
+    include files supplied by gamedriver
 -   master.h
 -   pragmas.h
 -   privs.h

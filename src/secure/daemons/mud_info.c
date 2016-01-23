@@ -6,8 +6,6 @@
 /// @version 0.0.0
 /// @date 2015-12-20
 
-#include "/include/driver/runtime_config.h"
-
 // --------------------------------------------------------------------------
 /// @brief mssp_telopt
 ///
