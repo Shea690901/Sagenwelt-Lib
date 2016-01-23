@@ -26,7 +26,6 @@
 
 // objects {{{
 #define LOGIN_OB        SECURE_DIR "login"          ///< login object
-#define SEFUNS          SECURE_DIR "simul_efun"     ///< simul efuns
 // }}}
 
 // daemons {{{
