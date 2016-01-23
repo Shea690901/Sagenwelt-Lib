@@ -20,6 +20,7 @@
     - newsd
     - mapd (world map)
     - ftpd (mostlikely support for external ftpd only)
+    - tmp_d holds ownership of files/dirs within public tmp-dirs
 1. privilege system (combined with daemons)
     - in progress
     - needs acl's for file/socket access inside master
