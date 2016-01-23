@@ -9,6 +9,7 @@
 1. simul_efuns
     - in progress
     - fast prng with seed for guarantied reproducable random numbers
+    - [sg]et_e?uid
 1. daemons
     - mud_info (needed for master functionality!)
         holds
