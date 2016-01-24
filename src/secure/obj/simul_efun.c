@@ -8,6 +8,7 @@
 
 #include    <simul_efun.h>
 
+#include    SEFUN_DIR "arrays"
 #include    SEFUN_DIR "file_system"
 #include    SEFUN_DIR "general"
 #include    SEFUN_DIR "logging"
