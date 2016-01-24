@@ -6,8 +6,6 @@
 /// @version 0.0.0
 /// @date 2015-12-13
 
-#include "/secure/include/syslog.h"
-
 // syslog {{{
 // --------------------------------------------------------------------------
 /// @brief syslog
@@ -22,7 +20,7 @@
 /// @Param args... - argumemts for the format string
 /// @Returns -
 // --------------------------------------------------------------------------
-varargs void syslog(int priority, string format, mixed *args...)
+public varargs void syslog(int priority, string format, mixed *args...)
 {
     int     facility;   // the supplied facility
     int     level;      // the supplied level
