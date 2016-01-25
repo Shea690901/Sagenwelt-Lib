@@ -1,87 +1,17 @@
 / 
-	read_file __ALL__
-	get_dir __ALL__
-	compress_file __ALL__
-	file_size __ALL__
-	ed_start
-	stat __ALL__
-	read_bytes __ALL__
-	move_file
-	restore_object
-	include
-	load_object
+	driver_open
+    driver_dopen
+    driver_stat
+    driver_debug
+    load_object
+    save_object
+    restore_object
 /Domains/
-	read_file __ALL__
-	get_dir __ALL__
-	compress_file
-	file_size __ALL__
-	ed_start
-	stat __ALL__
-	read_bytes __ALL__
-	move_file
-	restore_object
-	include
-	load_object
 /doc/
-	read_file __ALL__
-	get_dir __ALL__
-	compress_file __ALL__
-	file_size __ALL__
-	ed_start __Archwiz__
-	stat __ALL__
-	read_bytes __ALL__
-	move_file __Archwiz__
-	restore_object
-	include
-	load_object
 /doc/programming/
-	read_file __Wizard__
-	get_dir __ALL__
-	compress_file __Wizard__
-	file_size __ALL__
-	ed_start __Archwiz__
-	stat __ALL__
-	read_bytes __Wizard__
-	move_file __Archwiz__
-	restore_object
-	include
-	load_object
 /doc/w_help/
-	read_file __Wizard__
-	get_dir __ALL__
-	compress_file __Wizard__
-	file_size __ALL__
-	ed_start __Archwiz__
-	stat __ALL__
-	read_bytes __Wizard__
-	move_file __Archwiz__
-	restore_object
-	include
-	load_object
 /players/
-	read_file __ALL__
-	get_dir __ALL__
-	compress_file
-	file_size __ALL__
-	ed_start
-	stat __ALL__
-	read_bytes __ALL__
-	move_file
-	restore_object
-	include
-	load_object
 /secure/
-	read_file __Wizard__
-	get_dir __ALL__
-	compress_file __Wizard__
-	file_size __ALL__
-	ed_start __Archwiz__
-	stat __ALL__
-	read_bytes ____Wizard__
-	move_file
-	restore_object
-	include
-	load_object
 /secure/README.md
 /secure/daemons/
 /secure/daemons/README.md
