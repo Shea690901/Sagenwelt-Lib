@@ -6,9 +6,17 @@ by wizard to help implement their ideas, as well as a basic set of rooms.
 
 ### directory structure
 
++   include
+
+    standard include files
+
 +   lib
 
     all inheriables
+
++   map
+
+    world map (mostly virtual rooms)
 
 +   obj
 

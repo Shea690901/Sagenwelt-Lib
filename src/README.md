@@ -13,17 +13,9 @@ This directory contains the MudLib itself.
 
     documentations
 
-+   map
-
-    world map (mostly virtual rooms)
-
 +   players/
 
     homedirectories of the players and wizards, sorted into subdirs
-
-+   save/
-
-    ppayer-save-files, sorted into subdirs
 
 +   secure/
 

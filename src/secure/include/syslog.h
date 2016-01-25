@@ -48,13 +48,15 @@ varargs void syslog(int priority, string format, mixed *args...);
 // user defined objects to log corresponding conditions
 #define LOG_ERR             ( 4 << LOG_SHIFT)       ///< error
 #define LOG_WARNING         ( 5 << LOG_SHIFT)       ///< warnings
+// }}}
 
-// logging for these levels can be suppressed
+// logging for these levels can be suppressed {{{
 #define LOG_NOTICE          ( 6 << LOG_SHIFT)       ///< notices
 #define LOG_INFO            ( 7 << LOG_SHIFT)       ///< informations
 #define LOG_DEBUG           ( 8 << LOG_SHIFT)       ///< debug only
+// }}}
 
-// logging for these levels can he suppressed
+// logging for these levels can be suppressed {{{
 #define LOG_USER1           ( 9 << LOG_SHIFT)       ///< userdefined log levels
 #define LOG_USER2           (10 << LOG_SHIFT)
 #define LOG_USER3           (11 << LOG_SHIFT)

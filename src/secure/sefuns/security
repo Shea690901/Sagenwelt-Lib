@@ -1,0 +1,126 @@
+/// @addtogroup sefun
+/// @{
+/// @file security
+/// @brief security related simul_efuns
+/// @author Gwenhwyvar
+/// @version 0.0.0
+/// @date 2016-01-24
+
+// --------------------------------------------------------------------------
+/// @brief getgid 
+/// 
+/// @Param who - defaults to this_object()
+/// @Returns real group id
+// --------------------------------------------------------------------------
+public varargs string getgid(mixed who)
+{
+    string ret;
+
+    if(!who)
+        who = PO();
+
+    ret = efun::getuid(who);
+    return explode(ret, ":")[1];
+}
+
+// --------------------------------------------------------------------------
+/// @brief getegid 
+/// 
+/// @Param who - defaults to this_object()
+/// @Returns effective group id
+// --------------------------------------------------------------------------
+public varargs string getegid(mixed who)
+{
+    string ret;
+
+    if(!who)
+        who = PO();
+
+    ret = efun::geteuid(who);
+    if(!ret)
+        return UNKNOWN_DOMAIN;
+    else
+        return explode(ret, ":")[1];
+}
+
+// --------------------------------------------------------------------------
+/// @brief setegid 
+/// 
+/// @Param gid
+/// @Returns 1 if successfully set, 0 otherwise
+// --------------------------------------------------------------------------
+public int setegid(string egid)
+{
+    object    who = PO();
+    function    f = bind( (: efun::seteuid :), who);
+    string    arg = geteuid(who) + ":" + egid;
+
+    return (*f)(arg);
+}
+
+// --------------------------------------------------------------------------
+/// @brief getuid 
+/// 
+/// @Param who - defaults to this_object()
+/// @Returns real user id
+// --------------------------------------------------------------------------
+public varargs string getuid(mixed who)
+{
+    string ret;
+
+    if(!who)
+        who = PO();
+
+    ret = efun::getuid(who);
+    return explode(ret, ":")[0];
+}
+
+// --------------------------------------------------------------------------
+/// @brief geteuid 
+/// 
+/// @Param who - defaults to this_object()
+/// @Returns effective user id
+// --------------------------------------------------------------------------
+public varargs string geteuid(mixed who)
+{
+    string ret;
+
+    if(!who)
+        who = PO();
+
+    ret = efun::geteuid(who);
+    if(!ret)
+        return UNKNOWN_UID;
+    else
+        return explode(ret, ":")[0];
+}
+
+// --------------------------------------------------------------------------
+/// @brief seteuid 
+/// 
+/// @Param euid
+/// @Returns 1 if successfully set, 0 otherwise
+// --------------------------------------------------------------------------
+public int seteuid(string euid)
+{
+    object    who = PO();
+    function    f = bind( (: efun::seteuid :), who);
+    string    arg = euid + ":" + getegid(who);;
+
+    return (*f)(arg);
+}
+
+// --------------------------------------------------------------------------
+/// @brief seteids 
+/// @Returns 1 if successfully set, 0 otherwise
+// --------------------------------------------------------------------------
+public int seteids(void)
+{
+    object    who = PO();
+    string    arg = efun::getuid(who);
+    function    f = bind( (: efun::seteuid :), who);
+
+    return (*f)(arg);
+}
+
+///  @}

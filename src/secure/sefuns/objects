@@ -1,0 +1,41 @@
+/// @addtogroup sefun
+/// @{
+/// @file objects.c
+/// @brief simul_efuns related to lpc objects
+/// @author Gwenhwyvar
+/// @version 0.0.0
+/// @date 2016-01-23
+
+// --------------------------------------------------------------------------
+/// @brief simul_efun
+/// @Returns simul_efun object
+// --------------------------------------------------------------------------
+public object simul_efun()
+{
+    return TO();
+}
+
+// --------------------------------------------------------------------------
+/// @brief file_name 
+/// extended version of efun::file_name
+///
+/// @Param who - defaults to this_object()
+/// @Param flag
+/// @Returns 
+// --------------------------------------------------------------------------
+public string file_name(object who, int flag = 0)
+{
+    string fn = "";
+    int    i;
+
+    if(!who)
+        who = PO();
+
+    fn = efun::file_name(who);
+
+    if(flag && (i = strsrch(fn, '#')))
+        fn = fn[0..i-1];
+
+    return fn;
+}
+///  @}

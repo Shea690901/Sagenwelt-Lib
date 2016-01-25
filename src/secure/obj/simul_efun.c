@@ -6,9 +6,13 @@
 /// @version 0.0.0
 /// @date 2015-11-29
 
-#include    "/secure/include/std_paths.h"
+#include    <simul_efun.h>
 
-#include    SEFUN_DIR "file_system.c"
-#include    SEFUN_DIR "logging.c"
+#include    SEFUN_DIR "arrays"
+#include    SEFUN_DIR "file_system"
+#include    SEFUN_DIR "general"
+#include    SEFUN_DIR "logging"
+#include    SEFUN_DIR "objects"
+#include    SEFUN_DIR "security"
 
 /// @}

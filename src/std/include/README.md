@@ -3,8 +3,6 @@
 
 This directory contains the standard include files
 
--   driver/
+-   driver@
     include files supplied by gamedriver
-
--   std.h
-    standard include file, automatica£ly included into every object
+    symlink to _/secure/include/driver_
