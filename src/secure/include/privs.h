@@ -35,11 +35,14 @@
 #define NOBODY_DOMAIN   "__Nodomain__"                  // gid with no special privileges
 #define UNKNOWN_DOMAIN  "__Unknown__"                   // invalid domain
 
+#define MAP_DOMAIN      "__MAP__"                       // gid for mapd
+#define NEWS_DOMAIN     "__NEWS__"                      // gid for newsd
+#define MAIL_DOMAIN     "__MAIL__"                      // gid for maild
+#define CRON_DOMAIN     "__CRON__"                      // gid for crond
+
 // requests for check_acl
-#define _LINK   0
-#define _READ   1
-#define _WRITE  2
-#define _LOAD   3
+#define _READ   0
+#define _WRITE  1
 
 // efun privileges (master::valid_*)
 // these are indices into a bitfield!

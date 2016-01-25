@@ -9,6 +9,8 @@
 #ifndef __STD_H
 #define __STD_H
 
+#include "/secure/include/driver/runtime_config.h"
+
 // standard booleans
 #define     FALSE   0
 #define     TRUE    1

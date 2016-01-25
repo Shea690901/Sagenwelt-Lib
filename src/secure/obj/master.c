@@ -3,28 +3,69 @@
 /// @file master.c
 /// @brief first object loaded
 ///
-/// The master object is the first object loaded by the gamedriver, as
-/// such it has complete control over the mudlib and needs to implement a
-/// couple of functions for the gamedriver to work properly.
+/// The master object is the second object (after the simul_efun object) to be
+/// loaded by the gamedriver, it has complete control over the mudlib and
+/// needs to implement a couple of functions (master applies) for the
+/// gamedriver to work properly.
 /// @author Gwenhwyvar
 /// @version 0.0.0
 /// @date 2015-11-27
-/// @attention until this object is successfully loaded, there is no include path
+/// @attention until this object is successfully loaded, there is only the
+/// runtime configured include path
 
-#include "/secure/include/pragmas.h"    // setting standard pragmas
-#include "/secure/include/privs.h"      // privlege related defines
-#include "/secure/include/master.h"
+#include <pragmas.h>                // setting standard pragmas
+#include <master.h>                 // master specific
+#include <privs.h>                  // privlege related defines
+#include <driver/parser_error.h>    // for master::parser_error_message
 
-private mapping  init_acl(string);
-private int      check_acl(int, string, mixed);
+// private function forward declarations {{{
+private int      retrieve_ed_setup(object user);
+private int      save_ed_setup(object user, int config);
+private int      valid_bind(object doer, object owner, object victim);
+private int      valid_hide(object ob);
+private int      valid_link(string from, string to);
+private int      valid_object(object ob);
+private int      valid_override(string file, string efun_name, string mainfile);
+private int      valid_seteuid(object ob, string t_euid);
+private int      valid_shadow(object ob);
+private int      valid_socket(object ob, string func, mixed *info);
+private mapping  get_mud_stats(void);
+private mapping  init_acl(string type);
 private mapping  init_privileges(void);
+private mixed    valid_database(object doer, string action, mixed *info);
+private object   compile_object(string pathname);
+private object   connect(int port);
+private object  *parse_command_users(void);
+private string   creator_file(string filename);
+private string   get_bb_uid(void);
+private string   get_root_uid(void);
+private string   get_save_file_name(string file, object who);
+private string   make_path_absolute(string rel_path);
+private string   object_name(object ob);
+private string   parse_command_all_word(void);
+private string   parse_command_all_word(void);
+private string   parser_error_message(int type, object ob, mixed arg, int flag);
+private string   privs_file(string file);
+private string  *acl(int request, mixed info);
+private string  *epilog(int dummy);
+private string  *get_include_path(string file);
+private string  *get_include_path(string file);
+private string  *parse_command_adjectiv_id_list(void);
+private string  *parse_command_id_list(void);
+private string  *parse_command_plural_id_list(void);
+private string  *parse_command_prepos_list(void);
+private string  *parse_command_prepos_list(void);
+private void     crash(string crash_message, object command_giver, object current_object);
+private void     error_handler(mapping err, int caught);
+private void     flag(string driver_flag);
+private void     log_error(string file, string message);
+private void     preload(string str);
+private void     save_master(void);
+private void     startup_summary(void);
+// }}}
 
 // global vars {{{
-private nosave int debug = FALSE;       ///< got we called with debug flag?
-
-#ifdef __HAS_RUSAGE__
-private nosave mapping startup_time;    ///< time needed to start the mud
-#endif
+private nosave int *startup_info;       ///< how many objects to be preloaded, errors...
 
 /// @brief acl_*
 ///
@@ -37,27 +78,56 @@ private nosave mapping startup_time;    ///< time needed to start the mud
 ///     ...
 /// ])
 private mapping acl_read,               ///< acls for file read access
-                acl_write,              ///< acls for file write access
-                acl_load;               ///< acls for file load access
+                acl_write;              ///< acls for file write access
 
-private mapping privileges;             ///< object privileges
+/// @brief privileges
+///
+/// data format:
+/// ([
+///    "path" : <assigned privileges>,
+///     ...
+/// ])
+/// where assigned privileges is a bitfield (string)
+private mapping privileges;
 // }}}
 
-// std functions {{{
+// std applies {{{
 private void create()
 {
 #ifdef __HAS_RUSAGE__
-    startup_time = ([]);
+    mapping before,         ///< rusage before running create
+            after;          ///< rusage after running create
+
+    before = rusage();
+
+    startup_info = allocate(5);
+#else
+    startup_info = allocate(3);
 #endif
+
+    // we use the efun directly, it's faster
+    efun::seteuid(creator_file(__MASTER_FILE__));
+
+    startup_info[0] =           // # to be preloaded objects
+    startup_info[1] =           // # how often preload called
+    startup_info[2] = 0;        // # how many errors
+
     restore_object(MASTER_SAVE);
     if(!acl_read)
         acl_read   = init_acl("r");
     if(!acl_write)
         acl_write  = init_acl("w");
-    if(!acl_load)
-        acl_load   = init_acl("x");
     if(!privileges)
         privileges = init_privileges();
+
+#ifdef __HAS_RUSAGE__
+    after = rusage();
+    if(sizeof(before) && sizeof(after))
+    {
+        startup_info[3] = after["utime"] - before["utime"]
+        startup_info[4] = after["stime"] - before["stime"]
+    }
+#endif
 }
 
 private int clean_up(int arg)
@@ -67,34 +137,101 @@ private int clean_up(int arg)
 
 private void reset()
 {
+    save_object(MASTER_SAVE);
 }
 // }}}
 
 // helper functions {{{
+// save_master() {{{
+// --------------------------------------------------------------------------
+/// @brief save_master
+/// the master is a _very_ important object, as such we must be extremly
+/// careful when saving!
+/// @Returns -
+// --------------------------------------------------------------------------
+private void save_master(void)
+{
+    // move old backup copy out of the way
+    if(file_size(MASTER_SAVE + ".bak") >= 0)
+        rename(MASTER_SAVE + ".bak", MASTER_SAVE + ".bak~");
+
+    // make backup of old save file
+    if((file_size(MASTER_SAVE) >= 0) && (cp(MASTER_SAVE, MASTER_SAVE + ".bak") != 1))
+    {
+        syslog(LOG_KERN|LOG_EMERG, "master::save_master: can't save save file!");
+        efun::shutdown(-1);
+    }
+    else if(!save_obiect(MASTER_SAVE))  // save current values
+    {
+        // panic! couldn't save...
+        syslog(LOG_KERN|LOG_EMERG, "master::save_master: can't save master!");
+        efun::shutdown(-1);
+    }
+    else                                // now we can remove old backup
+        rm(MASTER_SAVE + ".bak~");
+}
+// }}}
 // init_acl() {{{
 private mapping init_acl(string type)
 {
-    string   cfg,
-            *lines,
-             line;
-    mapping  ret;
+    string  cfg = "",
+            fn;
+    mapping ret = ([]);
 
-    ret = ([]);
+    // read the proper config file
     switch(type)
     {
         case "r":
-            cfg = read_file(ACL_READ_CFG);
+            if(file_size(fn = ACL_READ_CFG) > 0)
+                cfg = read_file(ACL_READ_CFG);
             break;
         case "w":
-            cfg = read_file(ACL_WRITE_CFG);
-            break;
-        case "x":
-            cfg = read_file(ACL_LOAD_CFG);
+            if(file_size(fn = ACL_WRITE_CFG) > 0)
+                cfg = read_file(ACL_WRITE_CFG);
             break;
         default:
             error("Unknown argument '" + type + "' to init_acl");
             return;
     }
+
+    // and parse it
+    if(cfg != "")
+    {
+        string path = "";
+        int    ln = 0;
+
+        foreach(string line in explode(cfg, "\n"))
+        {
+            string *entries = ({});
+            ln++;
+            if(!line || (line == "") || (line[0] == '#'))   // skip empty lines and comments
+                continue;
+            switch(line[0])
+            {
+                case '/':                                   // new path entry
+                    path = line;
+                    break;
+                case '\t':                                  // new function entry
+                    if(path == "")                          // malformed config file
+                    {
+                        syslog(LOG_KERN|LOG_WARNING, "malformed config file: %s[%d]", fn, ln);
+                        return ({});
+                    }
+                    entries = explode(trim(line), " ");
+                    if(!ret[path])
+                        ret[path] = ([]);
+                    ret[path][entries[0]] = entries[1..];
+                    break;
+                default:
+                    syslog(LOG_KERN|LOG_WARNING, "malformed config file: %s[%d]", fn, ln);
+                    return ({});
+            }
+        }
+    }
+    else
+        syslog(LOG_KERN|LOG_WARNING, "empty config file: %s", fn);
+
+    return ret;
 }
 // }}}
 // acl(request, info) {{{
@@ -111,59 +248,123 @@ private string *acl(int request, mixed info)
         case _WRITE:
             acl_list = acl_write;
             break;
-        case _LOAD:
-            acl_list = acl_load;
-            break;
         default:
+            syslog(LOG_KERN|LOG_INFO, "master::acl(%d,...): unknown request type!", request);
+            return ({});
     }
     ret = match_path(acl_list, info[0]);
     return ret[info[1]];
 }
 // }}}
-// check_acl(request, euid, info) {{{
+// check_acl(request, euid, egie, info) {{{
 // --------------------------------------------------------------------------
-// request is one of _LINK, _READ or _WRITE
+// request currently supported:
+// - _READ
+// - _WRITE
 // euid is the effective uid of the object doing the request
+// egid is the effective gid of the object doing the request
 // the contents of info depends on the request, refer to the apropriate
 // valid_*
 // returns TRUE if the access is granted, FALSE otherwise
 // --------------------------------------------------------------------------
-public int check_acl(int request, string euid, mixed info)
+public int check_acl(int request, string euid, string egid, mixed info)
 {
     string *access, // access control list for given file
-            usr,    // user doing the request
-            grp,    // the group the user belongs to, if any
-           *t;
+           *grps,   // groups this_interactive belongs to
+            author, // author
+            domain; // and domain of the requested path
+    object  ti;
 
     switch(request) // check for valid request
     {
-        case _LIHK:
         case _READ:
         case _WRITE:
             if(info && arrayp(info) &&          // we need info to be an array of two strings
                 (sizeof(info) == 2) &&
                 stringp(info[0]) && stringp(info[1]))
+            {
+                switch(info[1])                 // map driver supplied function names
+                {
+                    case "compress_file":
+                    case "ed_start":
+                    case "include":
+                    case "move_file":
+                    case "read_bytes":
+                    case "read_file":
+                    case "rename":
+                    case "write_bytes":
+                    case "write_file":
+                        info[1] = "driver_open";
+                        break;
+                    case "get_dir":
+                    case "mkdir":
+                    case "remove_file":
+                    case "rmdir":
+                        info[1] = "driver_dopen";
+                        break;
+                    case "file_size":
+                    case "stat":
+                        info[1] = "driver_stat";
+                        break;
+                    case "debug_malloc":
+                    case "dumpallobj":
+                        info[1] = "driver_debug";
+
+                    case "load_object":
+                    case "restore_object":
+                    case "save_object":
+                    default:
+                        break;
+                }
                 break;
+            }
+            else                                // incorrect parameter
+                return FALSE;
         default:                                // everything else can't be valid
             return FALSE;
     }
 
-    // linking is allowed if euid may read the source and write the target
-    if(request == _LINK)
-        return check_acl(_READ, euid, ({ info[0], "ln" })) &&
-            check_acl(_WRITE, euid, ({ info[1], "ln" }));
-
     // get the acl for the given path and request
-    access = acl(request, info);
+    if(!sizeof(access = acl(request, info)))
+        return FALSE;                           // oops! nobody allowed!
 
-    // split euid in user and group part
-    t   = explode(euid, ":");
-    usr = t[0];
-    grp = (sizeof(t) == 2) ? t[1] : "";
+    // everyone allowed?
+    if(member_array(UPRIV_ALL, access) >= 0)
+        return TRUE;
 
     // test if either user or group is allowed
-    if((member_array(usr, access) != -1) || (member_array(grp, access) != -1))
+    if((member_array(euid, access) >= 0) || (member_array(egid, access) >= 0))
         return TRUE;
+
+    // check if owner
+    author = author_file(info[0]);
+    if((member_array(UPRIV_AUTHOR, access) >= 0) && (author == euid))
+        return TRUE;
+
+    // check if domain
+    domain = author_file(info[0]);
+    if((member_array(UPRIV_DOMAIN, access) >= 0) && (domain == egid))
+        return TRUE;
+
+    // check interactives
+    if(ti = TI())
+    {
+        if(member_array(UPRIV_MORTAL, access) >= 0)
+            return TRUE;
+        if((member_array(UPRIV_ELDER, access) >= 0) && ti->is_elder())
+            return TRUE;
+        if((member_array(UPRIV_WIZARD, access) >= 0) && ti->is_wiz())
+            return TRUE;
+        grps = ti->get_groups();
+        if((member_array(UPRIV_D_WIZ, access) >= 0) && (member_array(domain, grps)))
+            return TRUE;
+        if((member_array(UPRIV_D_LORD, access) >= 0) && ti->is_lord(domain))
+            return TRUE;
+        if((member_array(UPRIV_ARCH, access) >= 0) && ti->is_arch())
+            return TRUE;
+        if((member_array(UPRIV_ADMIN, access) >= 0) && ti->is_admin())
+            return TRUE;
+    }
 
     // everything else is disallowed
     return FALSE;
@@ -172,19 +373,56 @@ public int check_acl(int request, string euid, mixed info)
 // init_privileges() {{{
 private mapping init_privileges(void)
 {
-    string   cfg,
-            *lines,
-             line,
-             priv;
-    mapping  ret;
+    string  cfg = "";
+    mapping ret = ([]);
 
-    if(file_size(PRIVS_CFG) < 1)
+    // read config file
+    if(file_size(PRIVS_CFG) > 0)
+        cfg = read_file(PRIVS_CFG);
+
+    // and parse it
+    if(cfg != "")
     {
-        error("privilege config file error");
-        return;
+        int    ln = 0;
+
+        foreach(string line in explode(cfg, "\n"))
+        {
+            ln++;
+            if(!line || (line == "") || (line[0] == '#'))   // skip empty lines and comments
+                continue;
+            else if(line[0] == '/')
+            {
+                string *t = explode(line, "\t")
+                ret[t[0]] = t[1];
+            }
+            else
+                syslog(LOG_KERN|LOG_WARNING, "malformed config file: " + PRIVS_CFG + "[%d]", ln);
+        }
     }
-    cfg = read_file(ACL_READ_CFG);
-    if(sizeof(cfg)
+    else
+        syslog(LOG_KERN|LOG_WARNING, "empty config file: " + PRIVS_CFG);
+
+    return ret;
+}
+// }}}
+// startup_summary() {{{
+private void startup_summary(void)
+{
+    string out;
+
+    out  = sprintf("\n%:'='80s\nStartup Summary:\n%:'-'80s\n", "=", "-");
+    out += sprintf(
+            "# of preloaded objects: %:03d\n" +
+            "# of successful loads : %:03d\n" +
+            "# of errors           : %:03d\n",
+            startup_info[0], startup_info[1] - startup_info[2], startup_info[2]);
+#ifdef __HAS_RUSAGE__
+    out += sprintf("%:'-'80s\nStartup Time:\n", "-");
+    out += sprintf("  user time: %:6d\nsystem time: %:6d\n",
+            startup_info[3], startup_info[4]);
+#endif
+    out += sprintf("%:'='80s\n", "=");
+    write(out);
 }
 // }}}
 // }}}
@@ -208,15 +446,15 @@ private mapping init_privileges(void)
 private void flag(string driver_flag)
 {
 #ifdef __HAS_RUSAGE__
-    mapping before;         ///< rusage bevore loading object
-    mapping after;          ///< rusage after loading object
+    mapping before,         ///< rusage before loading object
+            after;          ///< rusage after loading object
 
     before = rusage();
 #endif
     switch driver_flag
     {
         "debug":
-            debug = TRUE;
+            set_debug(TRUE);        // set simul_efun internal debug flag
             break;
         default:
             error(sprintf("Unknown driver-flag '%s'â€¦", driver_flag));
@@ -226,8 +464,8 @@ private void flag(string driver_flag)
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
-        startup_time["utime"] = ["utime"] - before["utime"]
-        startup_time["stime"] = ["utime"] - before["utime"]
+        startup_info[3] = after["utime"] - before["utime"]
+        startup_info[4] = after["stime"] - before["stime"]
     }
 #endif
 }
@@ -241,73 +479,78 @@ private void flag(string driver_flag)
 /// returns an array of filenames, the driver will attempt to load those
 /// files via the preload() function.
 ///
-/// The variable 'load_empty' is non-zero if the -e option was specified when
-/// starting up the driver, which has been historically used to mean no
-/// preloads, although the mudlib is free to use another interpretation.
-/// @Param load_empty - if true no preloading is done
+/// @Param dummy - if true no preloading is done
 /// @Returns array of files to preload
+/// @Attention FluffOS no longer supports '-e', as such the parameter is always '0'!
 // --------------------------------------------------------------------------
-private string *epilog(int load_empty)
+private string *epilog(int dummy)
 {
-    string  content;
-    string  *ret;
-    mapping seen;
+    string   content,
+            *ret;
+    mapping  seen;
 #ifdef __HAS_RUSAGE__
-    mapping before;         ///< rusage bevore loading object
-    mapping after;          ///< rusage after loading object
+    mapping  before,         ///< rusage before loading object
+             after;          ///< rusage after loading object
 
     before = rusage();
 #endif
 
-    // either we shan't preload or the preload-file is empty
-    if(load_empty || !(content = read_file(PRELOADS)))
-        return ({});
-
-    ret = ({});
+    ret  = ({});
     seen = ([]);
-    // split content into array of single lines
-    foreach(string line in explode(content, "\n"))
+
+    if(content = read_file(PRELOADS))
     {
-        // ignore empty lines or comment lines
-        if(!line || line == "" || line[0] == '#')
-            continue;
-        // include all "*.c" from directories
-        if(line[<1] == '/')
+        // split content into array of single lines
+        // and process each line
+        foreach(string line in explode(content, "\n"))
         {
-            foreach(string entry in get_dir(line + "*.c"))
+            // ignore empty lines or comment lines
+            if(!line || line == "" || line[0] == '#')
+                continue;
+            // include all "*.c" from directories
+            if(line[<1] == '/')
             {
-                entry = entry[0..<3];       // cut of '.c' file ending
-                if(!seen[entry])
+                foreach(string entry in get_dir(line + "*.c"))
                 {
-                    ret += ({ entry });
-                    seen[entry] = 1;
+                    entry = entry[0..<3];       // cut of '.c' file ending
+                    if(!seen[entry])
+                    {
+                        ret += ({ entry });
+                        seen[entry] = 1;
+                    }
+                    else
+                        seen[entry] += 1;
+                }
+            }
+            // add all other lines directly to return array
+            else
+            {
+                if(line[<2..<1] == ".c")
+                    line = line[0..<3];         // cut of ".c" if present
+                if(!seen[line])
+                {
+                    ret += ({ line });
+                    seen[line] = 1;
                 }
                 else
-                    seen[entry] += 1;
+                    seen[line] += 1;
             }
         }
-        // add all other lines direct to return array
-        else
-        {
-            if(line[<2..<1] == ".c")
-                line = line[0..<3];         // cut of ".c" if present
-            if(!seen[line])
-            {
-                ret += ({ line });
-                seen[line] = 1;
-            }
-            else
-                seen[line] += 1;
-        }
-    }
+
+        startup_info[0] = sizeof(ret);            // preload needs to know when to print summary
+
 #ifdef __HAS_RUSAGE__
-    after = rusage();
-    if(sizeof(before) && sizeof(after))
-    {
-        startup_time["utime"] = ["utime"] - before["utime"]
-        startup_time["stime"] = ["utime"] - before["utime"]
-    }
+        after = rusage();
+        if(sizeof(before) && sizeof(after))
+        {
+            startup_info[3] = after["utime"] - before["utime"]
+            startup_info[4] = after["stime"] - before["stime"]
+        }
 #endif
+
+    if(!startup_info[0])
+        startup_summary();
+
     return ret;
 }
 // }}}
@@ -327,19 +570,23 @@ private void preload(string str)
 {
     string  err;            ///< error while loading object
 #ifdef __HAS_RUSAGE__
-    mapping before;         ///< rusage bevore loading object
-    mapping after;          ///< rusage after loading object
+    mapping before,         ///< rusage before loading object
+            after;          ///< rusage after loading object
     int     t;
 
     before = rusage();
 #endif
 
+    startup_info[1]++;
     write("Preloading: '" + str + "'...");
 
     // everything either has
     if(err = catch(load_object(str)))
+    {
         // compile errors
         write("Got error: '" + err + "'...");
+        startup_info[2]++;
+    }
     else
         // or loads fine...
         write("Done!...");
@@ -349,13 +596,16 @@ private void preload(string str)
     {
         t = after["utime"] - before["utime"];
         write("utime: " + t + "ms...")
-        startup_time["utime"] += t;
+        startup_info[3] += t;
         t = after["stime"] - before["stime"];
         write("utime: " + t + "ms")
-        startup_time["stime"] += t;
+        startup_info[4] += t;
     }
 #endif
+
     write("\n");
+    if(startup_info[0] == startup_info[1])  // all objects tried to load?
+        startup_summary();
 }
 // }}}
 ///  @} }}}
@@ -381,7 +631,7 @@ private void crash(string crash_message, object command_giver, object current_ob
 {
     syslog(LOG_KERN|LOG_EMERG, "master::crash(\"%s\", %O, %O)", crsh_message, commmd_giver, current_object);
     // tell_users("Game Driver shouts: Ack! I think the game is crashing!\n");
-    users()->quit();
+    users()->quit();        // force every user to logout
 }
 // }}}
 ///  @} }}}
@@ -399,7 +649,7 @@ private void crash(string crash_message, object command_giver, object current_ob
 /// @Returns backbone uid
 /// @Attention This routine is only used if PACKAGE_UIDS is used.
 // --------------------------------------------------------------------------
-private string get_bb_uid()
+private string get_bb_uid(void)
 {
     return creator_file("/std");;
 }
@@ -414,9 +664,9 @@ private string get_bb_uid()
 /// @Returns root uid
 /// @Attention This routine is only used if PACKAGE_UIDS is used.
 // --------------------------------------------------------------------------
-private string get_root_uid()
+private string get_root_uid(void)
 {
-    return credit("/secure");;
+    return creator_file("/secure");;
 }
 // }}}
 // author_file {{{
@@ -432,14 +682,14 @@ private string get_root_uid()
 ///
 /// For this mudlib player or wizard names are lowercase while domain names
 /// are capitalized
-/// Also this midlib uses this function to get ownership of directories for
+/// Also this mudlib uses this function to get ownership of directories for
 /// the 'ls' commamd
 /// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
 /// is used.
 /// @Param file - absolute path to source of some object
-/// @Returns name of author
+/// @Returns name of author - for the security system this will be the uid
 // --------------------------------------------------------------------------
-public string author_file (string file)
+public string author_file(string file)
 {
     string *path;
     int     sp,
@@ -447,6 +697,15 @@ public string author_file (string file)
 
     if(file[0] != '/')                  // strange argument, without any '/'...
         return UNKNOWN_UID;
+
+#if 0           // none yet
+    // special cases
+    switch(filename)
+    {
+        default:
+            break;
+    }
+#endif
 
     path = explode(file, "/");          // path[0] == "" !!!
     sp   = sizeof(path);
@@ -457,8 +716,7 @@ public string author_file (string file)
         case "players":                 // some player file
             // ""/"players"/"w"/"wiz"/"file.c"
             // 0  1         2   3     4
-            if((sp > 4) ||
-                    (sp == 4) && (fs == -2))
+            if((sp > 4) || (sp == 4) && (fs == -2))
                 return path[3];         // file/directory is owned by some player
             else if(fs == -2)
                 return BB_UID;          // the other directories belong to backbone
@@ -466,27 +724,52 @@ public string author_file (string file)
         case "Domains":                 // file belongs to some domain
             // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
             // 0  1         2         3         4     5
-            if((sp > 4) &&
-                (path[3] == "members") &&
-                ((sp > 5) ||
-                ((sp == 5) && (fs == -2))))
+            if(((sp >= 5) && (path[3] == "members")) &&
+                ((sp > 5) || ((sp == 5) && (fs == -2))))
                 return path[4];         // but is owned by one of it's members
             // ""/"Domains"/"Example"/"file.c"
             // 0  1         2         3
-            else if((sp > 3) ||
-                    ((sp == 3) && (fs == -2)))
-                return path[2];         // this f£ile truly belongs to the domain
+            else if((sp > 3) || ((sp == 3) && (fs == -2)))
+                return path[2];         // this file/directory truly belongs to the domain
             else if(fs == -2)
                 return BB_UID;          // the other directories belong to backbone
             break;
         case "std":                     // everything here belongs backbone
             return BB_UID;
             break;
-        case "secure":                  // this all security relevant!!!
+        case "secure":                  // these are all security relevant!!!
             return ROOT_UID;
             break;
+        case "var":                     // some special cases
+            // ""/"var"/"save"/"file.o"
+            // 0  1     2       3
+            if((sp >= 3) && (path[2] == "save"))
+                return ROOT_UID;
+            else if((sp > 3) && (path[2] == "spool"))
+            {
+                // ""/"var"/"spool"/"mail"/"p"/"player"/"mail_dirs"
+                // 0  1     2       3      4   5        6
+                if((sp > 5) && (path[3] == "mail"))
+                    return path[5];
+                else
+                    return BB_UID;
+            }
+            // ""/"var"/"tmp"/...
+            // 0  1     2
+            else if((sp > 3) && (path[2] == "tmp"))
+                return TMPD->author_file(path);
+            else
+                return BB_UID;
+            break;
+        case "tmp":
+            // ""/"tmp"/...
+            // 0  1
+            if(sp > 2)
+                return TMPD->author_file(path);
+            else
+                return BB_UID;
     }
-    return UNKNOWN_UID;                 // everything else shouldn't have any privileges
+    return UNKNOWN_UID;                 // everything else is unknown
 }
 // }}}
 // domain_file {{{
@@ -505,7 +788,8 @@ public string author_file (string file)
 /// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
 /// is used.
 /// @Param file
-/// @Returns domain the file belongs to
+/// @Returns domain the file belongs to - for the security system this will be
+/// the gid
 // --------------------------------------------------------------------------
 public string domain_file(string file)
 {
@@ -516,6 +800,17 @@ public string domain_file(string file)
     if(file[0] != '/')                  // strange argument, without any '/'...
         return UNKNOWN_DOMAIN;
 
+    // special cases
+    switch(filename)
+    {
+        case MAIL_D:
+            return MAIL_DOMAIN;
+        case NEWS_D:
+            return NEWS_DOMAIN;
+        default:
+            breao;
+    }
+
     path = explode(file, "/");      // path[0] == "" !!!
     sp   = sizeof(path);
     fs   = file_size(file);
@@ -525,8 +820,7 @@ public string domain_file(string file)
         case "players":                 // some player file
             // ""/"players"/"w"/"wiz"/"file.c"
             // 0  1         2   3     4
-            if((sp > 4) ||
-                    (sp == 4) && (fs == -2))
+            if((sp > 4) || (sp == 4) && (fs == -2))
                 return (MUD_INFO_D->is_wiz(path[3])) ?
                         WIZARD_DOMAIN : // wizard
                         PLAYER_DOMAIN;  // mortal
@@ -536,16 +830,45 @@ public string domain_file(string file)
         case "Domains":                 // file belongs to some domain
             // ""/"Domains"/"Example"/"file.c"
             // 0  1         2         3
-            if((sp > 3) ||
-                    ((sp == 3) && (fs == -2)))
-                return path[2];         // this f£ile truly belongs to the domain
+            if((sp > 3) || ((sp == 3) && (fs == -2)))
+                return path[2];         // this file truly belongs to the domain
             else if(sp == 2)
                 return BB_DOMAIN;       // the '/Domains' directory belongs to backbone
             break;
         case "std":                     // everything here belongs backbone
-        case "secure":                  // this to is backbone
+        case "secure":                  // this too is backbone
             return BB_DOMAIN;
             break;
+        case "var":
+            // ""/"var"/"spool"/...
+            // 0  1     2       3
+            if((sp > 3) && (path[2] == "spool"))
+            {
+                // ""/"var"/"spool"/"mail"/...
+                // 0  1     2       3      4
+                if((sp >= 4) && (path[3] == "mail"))
+                    return MAIL_DOMAIN;
+                // ""/"var"/"spool"/"news"/...
+                // 0  1     2       3      4
+                else if((sp >= 4) && (path[3] == "news"))
+                    return NEWS_DOMAIN;
+                else
+                    return BB_DOMAIN;
+            }
+            // ""/"var"/"tmp"/...
+            // 0  1     2
+            else if((sp > 3) && (path[2] == "tmp"))
+                return TMPD->domain_file(path);
+            else
+                return BB_DOMAIN;
+            break;
+        case "tmp":
+            // ""/"tmp"/...
+            // 0  1
+            if(sp > 2)
+                return TMPD->domain_file(path);
+            else
+                return BB_DOMAIN;
     }
     return UNKNOWN_DOMAIN;              // everything else shouldn't have any privileges
 }
@@ -566,56 +889,14 @@ public string domain_file(string file)
 ///
 /// This mudlib uses neither AUTO_SETEUID nor AUTO_TRUST_BACKBONE!
 /// Also creator is always <user>:<group>.
-/// @Param filename - absolute path to object o be loaded/cloned
+/// @Param filename - absolute path to object to be loaded/cloned
 /// @Returns name of creator
 // --------------------------------------------------------------------------
 private string creator_file(string filename)
 {
-    string *path;
-    int     sp;
-    string  uid = BB_UID;
-    string  gid = BB_DOMAIN;
-
-    path = explode(filename, "/");
-    sp   = sizeof(path);
-
-    switch(path[1])
-    {
-        "secure":
-            uid = ROOT_UID; // privileged object
-            break;
-        "std":              // standard object
-            break;
-        "players":
-            if(sp > 4)      // object belongs to some player
-            {
-                uid = author_file(filename);
-                gid = MUD_INFO_D->get_group(path[3]);
-            }
-            else            // here shouldn't be any object stored
-            {
-                uid = UNKNOWN_UID;
-                gid = UNKNOWN_DOMAIN;
-            }
-            break;
-        "Domains":
-            if(sp > 3)      // object belongs to some domain
-            {
-                uid = author_file(filename);
-                gid = MUD_INFO_D->get_group(path[3]);
-            }
-            else            // here shouldn't be any object stored
-            {
-                uid = UNKNOWN_UID;
-                gid = UNKNOWN_DOMAIN;
-            }
-            break;
-        default:
-            uid = UNKNOWN_UID;
-            gid = UNKNOWN_DOMAIN;
-            break;
-    }
-    return sprintf("%s:%s", uid, gid));
+    return("%s:%s",
+            author_file(filename),
+            domain_file(filename));
 }
 // }}}
 // privs_file {{{
@@ -649,7 +930,7 @@ private string privs_file(string file)
 private int valid_bind(object doer, object owner, object victim)
 {
     // master and simul_efuns are allowed
-    if((doer == TO()) || (doer == find_object(SEFUNS)))
+    if((doer == master()) || (doer == simul_efun()))
         return TRUE;
 
     // also allowed with PRIV_BIND
@@ -657,7 +938,8 @@ private int valid_bind(object doer, object owner, object victim)
         return TRUE;
 
     // everything else fails
-    syslog(LOG_AUTH|LOG_ERR, "Privilege violation: valid_bind(%O, ...)", doer);
+    syslog(LOG_AUTH|LOG_ERR, "Privilege violation: valid_bind(%O, %O, %O)",
+            doer, owner, victim);
     return FALSE;
 }
 // }}}
@@ -668,6 +950,7 @@ private int valid_bind(object doer, object owner, object victim)
 /// @Param action
 /// @Param info
 /// @Returns
+/// @Todo DB_d
 // --------------------------------------------------------------------------
 private mixed valid_database(object doer, string action, mixed *info)
 {
@@ -675,12 +958,12 @@ private mixed valid_database(object doer, string action, mixed *info)
     {
         case "connect": // new database connection only by master for now
         case "close":   // the same for closing
-            if(doer == TO())
+            if(doer == master())
                 return (action == "connect") ? "password" : 1;
             break;
         // every other action for now only master and PRIV_DB
         default:
-            if((doer == TO()) || (test_bit(query_privs(doer), PRIV_DB)))
+            if((doer == master()) || test_bit(query_privs(doer), PRIV_DB))
                 return TRUE;
     }
 
@@ -730,25 +1013,8 @@ private int valid_hide(object ob)
 // --------------------------------------------------------------------------
 private int valid_link(string from, string to)
 {
-    object  ob;
-    string  euid;
-
-    // who want's to link something?
-    ob = TP();
-
-    // it has to be done by someone
-    if(!ob)
-        return FALSE;
-
-    // check acl's
-    if(check_acl(_LINK, euid = geteuid(ob), ({ from, to })))
-        return TRUE;
-
-    // everything else fails
-    syslog(LOG_AUTH|LOG_ERR,
-            "Privilege violation: valid_link(\"%s\", \"%s\") by %O[%s]",
-            from, to, ob, euid);
-    return FALSE;
+    // we support linking, security check comes from within the driver
+    return TRUE;
 }
 // }}}
 // valid_object {{{
@@ -767,28 +1033,42 @@ private int valid_link(string from, string to)
 // --------------------------------------------------------------------------
 private int valid_object(object ob)
 {
-    string file,
-           dir,
-           euid;
-    object po;
-    int    clone;
+    string file;
+    int    clone,
+           ret = TRUE;
+    object po = PO();
 
-    file  = file_name(ob);
+    file  = file_name(ob, 1);
     clone = clonep(ob);
 
-    // no objects stored in hidden files
-    // everything from /secure and it's subdirs may be loaded(!)
-    // otherwise we ask the acl's
-    if((strsrch(file, "/.") == -1) && (
-        ((file[0..7] == "/secure/") && !clone) ||
-        check_acl(_LOAD, euid = geteuid(po = PO()), ({ po, file}))
-        ))
+    // we need uid/gid to be known
+    if((author_file(file) == UNKNOWN_UID) || (domain_file(file) == UNKNOWN_DOMAIN))
+        ret = FALSE;
+
+    // no objects stored in hidden files...
+    else if(strsrch(file, "/.") != -1)
+        ret = FALSE;
+
+    // everything from /secure and it's subdirs may be loaded(!)...
+    else if(file[0..7] == "/secure/")
+    {
+        // the LOGIN_OB might be cloned!
+        if(clone && (file != LOGIN_OB))
+            ret = FALSE;
+    }
+
+    // world writeable dirs are forbidden
+    else if((file[0..4] == "/tmp") || (file[0..8] == "/var/tmp"))
+        ret = FALSE;
+
+    // everything passed?
+    if(ret)
         return TRUE;
 
     // everything else fails
     syslog(LOG_AUTH|LOG_ERR,
             "Privilege violation: valid_object(%O) by %O[%s]",
-            ob, po, euid);
+            ob, po, efun::geteuid(po));
     return FALSE;
 }
 // }}}
@@ -835,9 +1115,11 @@ private int valid_object(object ob)
 // --------------------------------------------------------------------------
 private int valid_override(string file, string efun_name, string mainfile)
 {
-    // everything within "/secure" or with correct privilege is allowed
     // we don't have an object yet!!!
-    if(!strsrch(mainfile, "/secure") || test_bit(privs_file(mainfile), PRIV_OVERRIDE))
+    // only the filename from which the object is compiled...
+
+    // everything within "/secure" or with correct privilege is allowed
+    if((mainfile[0..6] == "/secure") || test_bit(privs_file(mainfile), PRIV_OVERRIDE))
         return TRUE;
 
     // everything else fails
@@ -862,21 +1144,22 @@ private int valid_override(string file, string efun_name, string mainfile)
 // --------------------------------------------------------------------------
 public int valid_read(string file, object ob, string func)
 {
-    string  euid;
+    string euid,
+           egid;
 
     // master is allowed
-    if(ob == TO())
+    if(ob == master())
         return TRUE;
 
     // otherwise we check the acl
-    if(check_acl(_READ, euid = geteuid(ob), ({ file, func }) ))
+    if(check_acl(_READ, euid = geteuid(ob), egid = getegid(ob), ({ file, func }) ))
         return TRUE;
 
     // everything else fails
     if(origin() == ORIGIN_DIVER)        // log only for actual requets
         syslog(LOG_AUTH|LOG_ERR,
-                "Privilege violation: valid_read(\"%s\", %O[%s], \"%s\")",
-                file, ob, euid, func);
+                "Privilege violation: valid_read(\"%s\", %O[%s:%s], \"%s\")",
+                file, ob, euid, egid, func);
     return FALSE;
 }
 // }}}
@@ -891,6 +1174,7 @@ public int valid_read(string file, object ob, string func)
 /// @Param ob - object atempting the seteuid
 /// @Param t_euid - argument to seteuid
 /// @Returns 1 if seteuid is granted, 0 otherwise
+/// @Attention this function checks driver internal representations!!!
 // --------------------------------------------------------------------------
 private int valid_seteuid(object ob, string t_euid)
 {
@@ -898,11 +1182,14 @@ private int valid_seteuid(object ob, string t_euid)
            *uids
             euid,
            *euids,
-           *t_euids,
-           *grps;
+           *t_euids;
 
-    uid     = getuid(ob);
-    euid    = geteuid(ob);
+    // special case: simul_efun is always allowed
+    if(ob == simul_efun())
+        return TRUE;
+
+    uid     = efun::getuid(ob);
+    euid    = efun::geteuid(ob);
 
     // as long as euid isn't set or one has the right privilege one can become
     // oneself
@@ -910,7 +1197,10 @@ private int valid_seteuid(object ob, string t_euid)
         return TRUE;
 
     uids    = explode(uid, ":");
-    euids   = explode(euid, ":");
+    if(!euid)
+        euids = ({ UNKNOWN_UID, UNKNOWN_DOMAIN });
+    else
+        euids   = explode(euid, ":");
     t_euids = explode(t_euid, ":");
 
     // effective ROOT_UID may change it's euid to any other
@@ -922,13 +1212,15 @@ private int valid_seteuid(object ob, string t_euid)
     {
         if(uids[0] == t_euids[0])
         {
-            grps = MUD_INFO_D->get_groups(uids[0]);
+            string *grps = MUD_INFO_D->get_groups(uids[0]);
             if(member_array(t_euids[1], grps) != -1)
                 return TRUE;
         }
+        // todo:
+        // allow 'su user' with correct credentials
     }
 
-    // one can allways lower ones privileges
+    // non interactives can allways lower their privileges
     else if((t_euids[0] == NOBODY_UID) || (t_euids[1] == NOBODY_DOMAIN))
         return TRUE;
 
@@ -954,15 +1246,19 @@ private int valid_seteuid(object ob, string t_euid)
 // --------------------------------------------------------------------------
 private int valid_shadow(object ob)
 {
-    object po  = PO();
-    int    ret = TRUE;
-    string fn  = basename(file_name(po));
+    object po    = PO();
+    int    ret   = TRUE;
+    string fn    = file_name(po, 1);
 
-    // shadows are required to have a corresponding name
-    if(fn[<7..] != "_shadow")
+    // neither master nor simul_efun is allowed to be shadowed!!!
+    if(ob == master()) || (ob == simul_efun())
         ret = FALSE;
 
-    // ROOT_UID can't be shadowed
+    // shadows are required to have a corresponding name
+    else if(fn[<7..] != "_shadow")
+        ret = FALSE;
+
+    // ROOT_UID can't be shadowed regardless of it's effective uid
     else if(getuid(ob) == ROOT_UID)
         ret = FALSE;
 
@@ -975,8 +1271,8 @@ private int valid_shadow(object ob)
         return TRUE;
 
     // everything else fails
-    syslog(LOG_AUTH|LOG_ERR, "Privilege violation: valid_shadow(%O) by %O",
-            ob, PO());
+    syslog(LOG_AUTH|LOG_ERR, "Privilege violation: valid_shadow(%O) by %O(%s)",
+            ob, po, efun::geteuid(po));
     return FALSE;
 }
 // }}}
@@ -1048,21 +1344,22 @@ private int valid_socket(object ob, string func, mixed *info)
 // --------------------------------------------------------------------------
 public int valid_write(string file, object ob, string func)
 {
-    string  euid;
+    string euid,
+           egid;
 
     // master is allowed
-    if(ob == TO())
+    if(ob == master())
         return TRUE;
 
     // otherwise we check the acl
-    if(check_acl(_READ, euid = geteuid(ob), ({ file, func }) ))
+    if(check_acl(_READ, euid = geteuid(ob), egid = getegid(ob), ({ file, func }) ))
         return TRUE;
 
     // everything else fails
     if(origin() == ORIGIN_DIVER)    // log only for actual requets
         syslog(LOG_AUTH|LOG_ERR,
-                "Privilege violation: valid_write(\"%s\", %O[%s], \"%s\")",
-                file, ob, euid, func);
+                "Privilege violation: valid_write(\"%s\", %O[%s:%s], \"%s\")",
+                file, ob, euid, egid, func);
     return FALSE;
 }
 // }}}
@@ -1098,7 +1395,7 @@ private object connect(int port)
         case SSL_PORT:
             break;
         default:
-            write(sprintf("This shouldn't have happened¦ got portnr.: %05d\n", port));
+            write(sprintf("This shouldn't have happened!\nGot portnr.: %05d\n", port));
             return 0;
     }
 
@@ -1106,7 +1403,6 @@ private object connect(int port)
     if(err = catch(l_ob = new(LOGIN_OB)))
     {
         // in case of error:
-
         // give the user a feed back
         write("Got error: '" + err + "'\n");
 
@@ -1117,6 +1413,8 @@ private object connect(int port)
         // tell the driver to terminate the connection
         return 0;
     }
+    else
+        l_ob->set_port(port);
 
     // give the driver the object this connection should be associated with
     return l_ob;
@@ -1134,7 +1432,7 @@ private object connect(int port)
 /// ___MSSP-REQUEST___ as character name.
 /// @Returns - a mapping containig the MSSP info
 // --------------------------------------------------------------------------
-private mapping get_mud_stats()
+private mapping get_mud_stats(void)
 {
     syslog(LOG_KERN|LOG_INFO, "mssp-telopt query");
     return MUD_INFO_D->mssp_telopt();
@@ -1160,7 +1458,7 @@ private mapping get_mud_stats()
 ///        "trace"   : mapping array  // a trace back
 ///    ])
 ///
-///Each line of traceback is a mapping containing the following:
+/// Each line of traceback is a mapping containing the following:
 ///
 ///    ([
 ///        "function"  : string,   // the function name
@@ -1172,35 +1470,57 @@ private mapping get_mud_stats()
 ///        "locals"    : array     // local variables
 ///    ])
 ///
-///arguments and local variables are only available if ARGUMENTS_IN_TRACEBACK and LOCALS_IN_TRACEBACK are defined.
+/// arguments and local variables are only available if ARGUMENTS_IN_TRACEBACK
+/// and LOCALS_IN_TRACEBACK are defined.
 ///
-///The 'caught' flag is 1 if the error was trapped by catch().
-/// @Param error
+/// The 'caught' flag is 1 if the error was trapped by catch().
+/// @Param err
 /// @Param caught
 /// @attention This function is only called if MUDLIB_ERROR_HANDLER is defined.
 // --------------------------------------------------------------------------
-// error_handler copied from testsuite
-private void error_handler(mapping error, int caught)
+private void error_handler(mapping err, int caught)
 {
-    object ob;
-    string str;
+    string str,
+           ret,
+           author = author_file(err["file"]),
+           domain = domain_file(err["file"]);
 
-    ob = TI() || TP();
+    // remove trailing (and leading) whitespace
+    err["error"] = trim(err["error"]);
 
-    if(flag)
-        str = "*Error caught\n";
-    else
-        str = "";
-    str += sprintf("Error: %s\nCurrent object: %O\nCurrent program: %s\nFile: %O Line: %d\n%O\n",
-            map["error"], (map["object"] || "No current object"),
-            (map["program"] || "No current program"),
-            map["file"], map["line"],
-            implode(map_array(map["trace"],
-            (: sprintf("Line: %O  File: %O Object: %O Program: %O", $1["line"], $1["file"], $1["object"] || "No object", $1["program"] ||
-            "No program") :)), "\n"));
-    write_file("/var/log/error.log", str);
-    if(!flag && ob)
-        tell_object(ob, str);
+    // If an object didn't load, they get compile errors.
+    if(err["error"][0..23] == "*Error in loading object")
+        return 0;
+
+    str = sprintf("Error %:8s : %s\nCurrent object : %O\nCurrent program: %s\nFile           : %s[%05d]\n",
+            (caught ? "(caught)" : ""),
+            err["error"],
+            (err["object"] || "<none>"),
+            (err["program"] || "<none>"),
+            err["file"], err["line"]);
+
+    ret = caught ? "" : str;
+
+    if(!caught)
+    {
+        // oops! we should inform someone about this error
+        object *ob = ({ TI() || TP() });
+
+        ob += MUD_INFO_D->error_author(author);
+        ob += MUD_INFO_D->error_domain(domain);
+        ob = distinct_array(ob);
+
+        message(MSGCLASS_ERROR, str, ob, ({}));
+    }
+
+    str += sprintf("Call trace:\n%s\n",
+            implode(map_array(err["trace"],
+            (: sprintf("--\nObject: %O\nProgram: %O\nFile: %s[%05d]",
+                       $1["object"] || "<none>",
+                       $1["program"] || "<none>",
+                       $1["file"], $1["line"]) :)), "\n"));
+
+    m_syslog(author, domain, LOG_KERN|LOG_ERR, str);
 }
 // }}}
 // log_error {{{
@@ -1220,7 +1540,13 @@ private void error_handler(mapping error, int caught)
 // --------------------------------------------------------------------------
 private void log_error(string file, string message)
 {
-    syslog(LOG_USER|LOG_ERR, "(%s): %s", file, message);
+    int level;
+
+    if(message[0..] == "Warning:")
+        level = LOG_WARN;
+    else
+        level = LOG_ERR;
+    m_syslog(author_file(file), dlmain_file(file), LOG_USER|level, "(%s): %s", file, message);
 }
 // }}}
 ///  @}
@@ -1265,6 +1591,80 @@ private string make_path_absolute(string rel_path)
 // {{{
 /// @{
 // parser_error_message {{{
+// --------------------------------------------------------------------------
+/// @brief parser_error_message
+/// @Param type
+/// @Param ob
+/// @Param arg
+/// @Param flag
+/// @Returns
+// --------------------------------------------------------------------------
+private string parser_error_message(int type, object ob, mixed arg, int flag)
+{
+    string ret;
+
+    if(ob)
+        ret = ob->short() + ": ";
+    else
+        ret = "";
+
+    switch(type)
+    {
+        case ERR_IS_NOT:
+            if(flag)
+                return ret + "There is no such " + arg + " here.\n";
+            else
+                return ret + "There is no " + arg + " here.\n";
+            break;
+        case ERR_NOT_LIVING:
+            if(flag)
+                return ret + "None of the " + pluralize(arg) + " are alive.\n";
+            else
+                return ret + "The " + arg + " isn't alive.\n";
+            break;
+        case ERR_NOT_ACCESSIBLE:
+            if(flag)
+                return ret + "You can't reach them.\n";
+            else
+                return ret + "You can't reach it.\n";
+            break;
+        case ERR_AMBIG:
+            {
+                mixed  *descs = unique_array(arg, (: $1->the_short() :));
+                string  str;
+
+                if(sizeof(descs) == 1)
+                    return ret + "Which " + descs[0][0]->short() + " do you mean?\n";
+                str = ret + "Do you mean ";
+                for(int i = 0; i < sizeof(descs); i++)
+                {
+                    if(sizeof(descs[i]) > 1)
+                        str += "one of ";
+                    str += descs[i][0]->the_short();
+                    if(i == sizeof(descs) - 1)
+                        str += " or ";
+                    else
+                        str += ", ";
+                }
+                return str + "?\n";
+            }
+            break;
+        case ERR_ORDINAL:
+            if(arg > 1)
+                return ret + "There are only " + arg + " of them.\n";
+            else
+                return ret + "There is only one of them.\n";
+            break;
+        case ERR_ALLOCATED:
+            return ret + arg;
+        case ERR_THERE_IS_NO:
+            return ret + "There is no " + arg + " here.\n";
+        case ERR_BAD_MULTIPLE:
+            return ret + "You can't use more than one object at a time with that verb.\n";
+        case ERR_MANY_PATHS:
+            return ret + "Oops?!? What happened now?\n";
+    }
+}
 // }}}
 // parse_command_all_word {{{
 // --------------------------------------------------------------------------
@@ -1275,12 +1675,64 @@ private string make_path_absolute(string rel_path)
 /// efun.
 /// @Returns word
 // --------------------------------------------------------------------------
-string parse_command_all_word ()
+private string parse_command_all_word(void)
 {
     return "all";
 }
 // }}}
+// parse_command_id_list {{{
+// --------------------------------------------------------------------------
+/// @brief parse_command_id_list
+///
+/// This routine is called in the master object to find out what words should
+/// be considered to refer to something. It is used by the parse_command()
+/// efun to get a default value for objects missing this function...
+/// @Returns
+// --------------------------------------------------------------------------
+private string *parse_command_id_list(void)
+{
+    return ({ "one", "thing" });
+}
+// }}}
+// parse_command_plural_id_list {{{
+// --------------------------------------------------------------------------
+/// @brief parse_command_plural_id_list
+///
+/// This routine is called in the master object to find out what words should
+/// be considered to refer to multiple somethings. It is used by the
+/// parse_command() efun to get a default value for objects missing this
+/// function...
+/// @Returns word
+// --------------------------------------------------------------------------
+private string *parse_command_plural_id_list(void)
+{
+    return ({ "ones", "things", "them" });
+}
+// }}}
+// parse_command_adjectiv_id_list {{{
+// --------------------------------------------------------------------------
+/// @brief parse_command_plural_id_list
+///
+/// This routine is called in the master object to find out what adjectives
+/// should be considered to refer to something. It is used by the
+/// parse_command() efun to get a default value for objects missing this
+/// function...
+/// @Returns word
+// --------------------------------------------------------------------------
+private string *parse_command_adjectiv_id_list(void)
+{
+    return ({ "iffish" });
+}
+// }}}
 // parse_command_users {{{
+// --------------------------------------------------------------------------
+/// @brief parse_command_users
+/// @Returns
+// --------------------------------------------------------------------------
+private object *parse_command_users(void)
+{
+    return users();
+}
 // }}}
 // parse_command_prepos_list {{{
 // --------------------------------------------------------------------------
@@ -1291,20 +1743,19 @@ string parse_command_all_word ()
 /// parse_command() efun.
 /// @Returns
 // --------------------------------------------------------------------------
-private string *parse_command_prepos_list ()
+private string *parse_command_prepos_list(void)
 {
-    return ({ "down", "up", "in", "on", "out", "within", "without", "into",
-            "onto", "inside", "outside", "across", "against", "around", "at",
-            "between", "here", "over", "near", "through", "under", "with",
-            "about", "enter", "every", "exit", "for", "from", "of", "off",
-            "only", "room", "to", "-r", "-a" });
+    return ({ "aboard", "about", "above", "across", "against", "alongside",
+            "around", "at", "behind", "below", "beneath", "beside", "besides",
+            "between", "by", "down", "enter", "every", "exit", "for", "from",
+            "here", "in", "inside", "into", "near", "of", "off", "on", "only",
+            "onto", "out of", "out", "outside", "over", "room", "through",
+            "to", "under", "underneath", "up", "upon", "with", "within",
+            "without", "alongside of", "back of", "down from", "in back of",
+            "in front of", "inside of", "near to", "next to", "off of",
+            "on top of", "outside of", "over to", "round about", "up to",
+            "-a", "-r"});
 }
-// }}}
-// parse_get_first_inventory {{{
-// }}}
-// parse_get_next_inventory {{{
-// }}}
-// parse_get_environment {{{
 // }}}
 ///  @} }}}
 
@@ -1358,24 +1809,24 @@ private string *get_include_path(string file)
             // ""/"players"/"w"/"wiz"/"file.c"
             // 0  1         2   3     4
             return ({ ".",
-                        "/players/" + path[2] + "/" + path[3] + "/include",
-                        ":DEFAULT:" });
+                      "/players/" + path[2] + "/" + path[3] + "/include",
+                      "/std/include" });
             break;
         case "Domains":
             // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
             // 0  1         2         3         4     5
             if((sizeof(sp) > 5) && (path[3] == "members"))
                 return ({ ".",
-                            "/Domains/" + path[2] + "/members/" + path[4] + "/include",
-                            "/Domains/" + path[2] + "/include",
-                            ":DEFAULT:" });
+                          "/Domains/" + path[2] + "/members/" + path[4] + "/include",
+                          "/Domains/" + path[2] + "/include",
+                          "/std/include" });
             else
                 return ({ ".",
-                            "/Domains/" + path[2] + "/include",
-                            ":DEFAULT:" });
+                          "/Domains/" + path[2] + "/include",
+                          "/std/include" });
                 break;
     }
-    return ({ ":DEFAULT:" });
+    return ({ "/std/include" });
 }
 // }}}
 // object_name {{{
@@ -1388,7 +1839,7 @@ private string *get_include_path(string file)
 /// @Param ob - object
 /// @Returns
 // --------------------------------------------------------------------------
-private string object_name (object ob)
+private string object_name(object ob)
 {
     if(!ob)                     // ob no longer exists
         return "<destructed>";
