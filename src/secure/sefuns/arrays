@@ -12,7 +12,7 @@
 /// @Param arr
 /// @Returns copy of arr in random order
 // --------------------------------------------------------------------------
-mixed *scramble_array(mixed *arr)
+public mixed *scramble_array(mixed *arr)
 {
     return sort_array(copy(arr), (: random(3) - 1 :) );
 }
@@ -22,7 +22,7 @@ mixed *scramble_array(mixed *arr)
 /// @Param arr
 /// @Returns - copy of arr with duplicates removed
 // --------------------------------------------------------------------------
-mixed *distinct_array(mixed *arr)
+public mixed *distinct_array(mixed *arr)
 {
     int     i   = sizeof(arr) - 1;
     mapping tmp = allocate_mapping(i + 1);
@@ -38,7 +38,7 @@ mixed *distinct_array(mixed *arr)
 /// @Param i
 /// @Returns - copy of arr with it's ith member removed
 // --------------------------------------------------------------------------
-mixed *remove_member(mixed *arr, int i)
+public mixed *remove_member(mixed *arr, int i)
 {
     return arr[0..(i - 1)] + arr[(i + 1)..];
 }

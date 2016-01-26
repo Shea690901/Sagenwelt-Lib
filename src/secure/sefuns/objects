@@ -212,4 +212,51 @@ public string domain_of(string file)
         return UNKNOWN_DOMAIN;
 }
 // }}}
+// destruct {{{
+// --------------------------------------------------------------------------
+/// @brief destruct 
+///
+/// security override for efun::destruct
+/// also calls remove in the object to be destroyed, remove then has to do the
+/// actual destroying by calling ```destruct();```
+/// @Param ob
+/// @Returns 
+// --------------------------------------------------------------------------
+public varargs void destruct(object ob)
+{
+    object who = TO();
+
+    // where we called with some argument?
+    if(!nullp(ob))
+    {
+        string euid = geteuid(who);
+        string egid = getegid(who);
+
+        if((ob != who) && (euid != ROOT_UID) && (geteuid(ob) != euid))
+        {
+
+            _syslog(who, euid, egid, LOG_AUTH|LOG_ERR,
+                    "illegal call to destruct(%O) by %O[%s:%s]",
+                    ob, who, euid, egid);
+            error("illegal call to destruct");
+            return;
+        }
+        else        // allowed to destruct(ob), let's give it a chance to terminate nicely
+        {
+            mixed ret = ob->remove(who);
+            _syslog(who, euid, egid, LOG_DESTRUCT|LOG_INFO,
+                    "%O[%s:%s]->destruct(%O) remove=%O",
+                    who, euid, egid, ob, ret);
+        }
+    }
+    else            // no argument -> self destruct ..
+        ob = who;
+
+    // either we didn't got destructed by remove or we where called without
+    // argumemt
+    if(ob)
+        efun::destruct(ob);
+}
+
+// }}}
 ///  @}

@@ -19,18 +19,7 @@
 // --------------------------------------------------------------------------
 public string basename(string path)
 {
-    string *fn;
-
-    // check if path is an absolute path
-    if(!path || path[0] != '/')
-        error("sefun::basename: illegal argument '" + path + "'");
-
-    // split path at "/"
-    fn = explode(path,"/");
-    // split last element at "#"
-    fn = explode(fn[<1], "#");
-    // return plain filename
-    return fn[0];
+    return explode(base_name(path), "/")[<1]
 }
 // }}}
 // dirname {{{
@@ -40,18 +29,21 @@ public string basename(string path)
 /// For ```/path/to/some_file_or_directory#with_optional_öbject_id``` this
 /// function will return ```/path/to```.
 /// @Param path - absolute path
-/// @Returns complete path up to the last '/'
+/// @Returns complete path up to (not including) the last '/'
 // --------------------------------------------------------------------------
 public string dirname(string path)
 {
-    string *fn;
-
     // check if path is an absolute path
     if(!path || path[0] != '/')
         error("sefun::dirname: illegal argument '" + path + "'");
 
-    fn = explode(path,"/");
-    return implode(fn[0..<2], "/");
+    path = canonical_path(path);
+
+    // faster for this case...
+    if(path[<1] == '/')
+        return path[0..<2];
+
+    return implode(explode(path,"/")[0..<2], "/");
 }
 // }}}
 // get_cwd {{{
@@ -60,17 +52,18 @@ public string dirname(string path)
 ///
 /// This function returns the current working directory of the specified
 /// obiect.
-/// @Param who - who are we querying
+/// @Param who - who are we querying, defaults to this_object()
 /// @Returns cwd
-/// @todo implement player->query_cwd()
 // --------------------------------------------------------------------------
-public string get_cwd(object who)
+public string get_cwd(object who = 0)
 {
     if(!who)
-        error("sefun::get_cwd: illegal argument 'NULL'");
+        who = TO();
+
     // is (or was) who interactive?
     if(userp(who))
         return who->query_cwd();
+
     // for all other obiects return "dirname(filename)"
     return dirname(file_name(who));
 }
@@ -89,6 +82,8 @@ public string get_cwd(object who)
 public string canonical_path(string path)
 {
     string *p_elems;
+    int     x,
+            sz;
 
     // check if path is an absolute path
     if(!path || path[0] != '/')
@@ -98,59 +93,24 @@ public string canonical_path(string path)
     p_elems = explode(path, "/") - ({ "", "." });
 
     // search for ".." and delete those together with the preceding element
-    for(int x = 0; x < sizeof(p_elems);)
+    for(x = 0, sz = sizeof(p_elems); x < sz;)
     {
         if(p_elems[x] == "..")
         {
             p_elems = p_elems[0..x-2] + p_elems[x+1..];
-            x--;
+            // ({ "..", ... }) -> x == -1
+            x -= (!x) ? 0 : 1;
+            sz = sizeof(p_elems);
         }
         else
         {
             x++;
         }
-        if(x < 0)
-            x = 0;
     }
-    if(sizeof(p_elems) == 0)
+    if(!sz)
         return "/";
     else
-        return implode(({ "" }) + p_elems, "/");
-}
-// }}}
-// absolute_path {{{
-// --------------------------------------------------------------------------
-/// @brief absolute_path - makes relative paths absolute
-///
-/// If the argument is a relative path, this function will prepend the callers
-/// current working directory. regardless of the type of path it will be
-/// returned as a canonical path, that is without any single or double dots and
-/// without any consecutive slashes.
-/// @Param path - absolute or relative path
-/// @Returns absolute, canonical  path
-// --------------------------------------------------------------------------
-public string absolute_path(string path)
-{
-    object who;
-
-    // is path relative?
-    if(path[0] != '/')
-    {
-        // where we called from some other object?
-        if(who = previous_object())
-        {
-            // yes: prepend cwd of this other object
-            path = get_cwd(who) + path;
-        }
-        else
-        {
-            // otherwise prepend our own cwd
-            path = get_cwd(this_object()) + path;
-        }
-    }
-    // now we have an absolute path, which might contain one or more of "//",
-    // "/." or "/.."
-    return canonical_path(path);
+        return implode(({ "" }) + p_elems, "/") + (path[<1] == '/') ? "/" : "";
 }
 // }}}
 ///  @}

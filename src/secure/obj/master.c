@@ -1689,7 +1689,7 @@ private string object_name(object ob)
     if(!ob)                     // ob no longer exists
         return "<destructed>";
     if(interactive(ob))         // player
-        return sprintf("<%s's link>", ob->query_uid());
+        return sprintf("<%s's link>", getuid(ob));
     return file_name(ob);
 }
 // }}}
