@@ -17,8 +17,6 @@
 public int       check_acl(int request, string euid, string egid, mixed info);
 public int       valid_read(string file, object ob, string func);
 public int       valid_write(string file, object ob, string func);
-public string    author_file(string file);
-public string    domain_file(string file);
 // }}}
 
 #endif // __SEC_MASTER_H
