@@ -3,7 +3,7 @@
 /// @file simul_efun_intern.h
 /// @brief for internal use only
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2016-01-25
 
 #ifndef __SEC_SIMUL_EFUN_INTERN_H

@@ -3,7 +3,7 @@
 /// @file logging.c
 /// @brief miscalenious simul_efuns
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2015-12-13
 
 // _syslog {{{

@@ -3,7 +3,7 @@
 /// @file file_system.c
 /// @brief simul_efuns related to file system operations
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2015-11-29
 
 // basename {{{

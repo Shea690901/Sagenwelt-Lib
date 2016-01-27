@@ -3,7 +3,7 @@
 /// @file simul_efun.h
 /// @brief simul_efun specific macros and function declaratios
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2016-01-24
 
 #ifndef __SEC_SIMUL_EFUN_H

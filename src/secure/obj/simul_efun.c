@@ -3,7 +3,7 @@
 /// @file simul_efun.c
 /// @brief simulated efuns
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2015-11-29
 
 #include    <simul_efun.h>
