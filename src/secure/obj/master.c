@@ -8,7 +8,7 @@
 /// needs to implement a couple of functions (master applies) for the
 /// gamedriver to work properly.
 /// @author Gwenhwyvar
-/// @version 0.0.0
+/// @version 0.1.0
 /// @date 2015-11-27
 /// @attention until this object is successfully loaded, there is only the
 /// runtime configured include path

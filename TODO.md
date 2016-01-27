@@ -2,9 +2,6 @@
 
 1. base directory structure
     - in progress
-1. master
-    - in progress
-    - /var/cfg/*.acl need to be completed
 1. simul_efuns
     - in progress
     - fast prng with seed for guarantied reproducable random numbers
@@ -63,3 +60,5 @@
     - ~ 13107: hash table size
     - ~  4096: obiect table size
 1. documentation for driver support headers (/include/driver/*)
+1. master
+    - /var/cfg/*.acl need to be completed
