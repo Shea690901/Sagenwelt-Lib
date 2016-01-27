@@ -33,4 +33,20 @@ public void done_startup(void)
 #include    SEFUN_DIR "room"
 #include    SEFUN_DIR "security"
 
+// event handler {{{
+// destruct {{{
+public void event_destruct(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+}
+// }}}
+// shutdown {{{
+public void event_shutdown(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+}
+// }}}
+// }}}
 /// @}

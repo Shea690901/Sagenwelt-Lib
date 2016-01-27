@@ -243,10 +243,9 @@ public varargs void destruct(object ob)
         }
         else        // allowed to destruct(ob), let's give it a chance to terminate nicely
         {
-            mixed ret = ob->remove(who);
+            event(({ob}), "destruct", who);
             _syslog(who, euid, egid, LOG_DESTRUCT|LOG_INFO,
-                    "%O[%s:%s]->destruct(%O) remove=%O",
-                    who, euid, egid, ob, ret);
+                    "%O[%s:%s]->destruct(%O)", who, euid, egid, ob);
         }
     }
     else            // no argument -> self destruct ..

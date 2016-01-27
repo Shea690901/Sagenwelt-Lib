@@ -1731,4 +1731,22 @@ private int save_ed_setup(object user, int config)
 ///  @} }}}
 ///  }}}
 
+// event handler {{{
+// destruct {{{
+public void event_destruct(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_master();
+}
+// }}}
+// shutdown {{{
+public void event_shutdown(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_master();
+}
+// }}}
+// }}}
 ///  @}
