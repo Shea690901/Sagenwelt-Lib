@@ -16,6 +16,7 @@ private void create(void)
     startup_finished = FALSE;
 
     init_object_efuns();
+    init_terminal_efuns();
 }
 
 public void done_startup(void)
@@ -32,6 +33,8 @@ public void done_startup(void)
 #include    SEFUN_DIR "objects"
 #include    SEFUN_DIR "room"
 #include    SEFUN_DIR "security"
+#include    SEFUN_DIR "strings"
+#include    SEFUN_DIR "terminal"
 
 // event handler {{{
 // destruct {{{

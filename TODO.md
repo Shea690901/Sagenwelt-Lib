@@ -8,6 +8,7 @@
     - call\_out handler (prevention of 'too many call\_outs)
     - clone_object (prevention of object flooding)
     - support function "event_shutdown" in livings/daemons/...
+    - termcap support?
 1. daemons
     - mud_info (needed for master functionality!)
         - holds

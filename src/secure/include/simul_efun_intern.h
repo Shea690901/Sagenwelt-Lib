@@ -9,6 +9,9 @@
 #ifndef __SEC_SIMUL_EFUN_INTERN_H
 #define  __SEC_SIMUL_EFUN_INTERN_H
 
+private void init_object_sefuns(void);
+private void init_terminal_sefuns(void);
+
 private varargs void _syslog(object caller, string uid, string gid, int priority, string format, mixed *args...);
 
 #endif;

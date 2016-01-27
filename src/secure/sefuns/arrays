@@ -7,6 +7,7 @@
 /// @version 0.0.0
 /// @date 2016-01-24
 
+// scramble_array {{{
 // --------------------------------------------------------------------------
 /// @brief scramble_array 
 /// @Param arr
@@ -16,7 +17,8 @@ public mixed *scramble_array(mixed *arr)
 {
     return sort_array(copy(arr), (: random(3) - 1 :) );
 }
-
+// }}}
+// distinct_array {{{
 // --------------------------------------------------------------------------
 /// @brief distinct_array 
 /// @Param arr
@@ -31,15 +33,65 @@ public mixed *distinct_array(mixed *arr)
         tmp[arr[i--]] = 1;
     return keys(tmp);
 }
-
+// }}}
+// unique_mapping {{{
 // --------------------------------------------------------------------------
-/// @brief remove_member 
+/// @brief unique_mapping 
+/// same semantic as unique_array but retains the return values of the
+/// seperator function as keys into the returned mapping
 /// @Param arr
-/// @Param i
-/// @Returns - copy of arr with it's ith member removed
+/// @Param sep
+/// @Param skip
+/// @Returns 
 // --------------------------------------------------------------------------
-public mixed *remove_member(mixed *arr, int i)
+public varargs mapping unique_mapping(mixed *arr, mixed sep, mixed skip)
 {
-    return arr[0..(i - 1)] + arr[(i + 1)..];
+    mapping ret;
+    int     st;
+
+    if(!arr || !pointerp(arr))
+        return ([]);
+
+    if(stringp(sep))
+    {
+        ret = ([]);
+        st = nullp(skip);
+        foreach(mixed elem in arr)
+        {
+            mixed val;
+
+            // sep is string => only objects allowed
+            if(!objectp(elem))
+                continue;
+            val = call_other(elem, sep);
+            if(!st && (val == skip))
+                continue;
+            if(!ret[val])
+                ret[val] = ({ elem });
+            else
+                ret[val] += ({ elem });
+        }
+    }
+    else if(functionp(sep))
+    {
+        ret = ([]);
+        st = nullp(skip);
+        foreach(mixed elem in arr)
+        {
+            mixed val;
+
+            val = (*sep)(elem);
+            if(!st && (val == skip))
+                continue;
+            if(!ret[val])
+                ret[val] = ({ elem });
+            else
+                ret[val] += ({ elem });
+        }
+    }
+    else
+        error("wrong type of second argument to unique_mapping (got " +
+                typeof(sep) + " expected string|function)");
 }
+// }}}
 ///  @}
