@@ -148,7 +148,7 @@ public int playerp(object ob)
 // --------------------------------------------------------------------------
 public int elder(object ob)
 {
-    return playerp(ob) && (member_array(UPRIV_ELDER, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+    return playerp(ob) && (member_array(UPRIV_ELDER, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 // }}}
 // creatorp {{{
@@ -160,7 +160,7 @@ public int elder(object ob)
 // --------------------------------------------------------------------------
 public int creatorp(object ob)
 {
-    return playerp(ob) && (member_array(UPRIV_WIZARD, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+    return playerp(ob) && (member_array(UPRIV_WIZARD, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 // }}}
 // Dcreatorp {{{
@@ -183,15 +183,15 @@ public int Dcreatorp(object ob, string domain = "@any@")
     if(domain == "@any@")
     {
         // check every domain
-        foreach(domain in MUD_INFO_D->get_domains())
+        foreach(domain in (string)MUD_INFO_D->get_domains())
         {
-            if(member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1)
+            if(member_array(uid, (string)MUD_INFO_D->get_domain_member(domain)) != -1)
                 return TRUE;
         }
         // not found...
         return FALSE;
     }
-    return member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1;
+    return member_array(uid, (string)MUD_INFO_D->get_domain_member(domain)) != -1;
 }
 // }}}
 // Dlordp {{{
@@ -215,16 +215,16 @@ public int Dlordp(object ob, string domain = "@any@")
     if(domain == "@any@")
     {
         // check every domain
-        foreach(domain in MUD_INFO_D->get_domains())
+        foreach(domain in (string)MUD_INFO_D->get_domains())
         {
-            if(member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1)
+            if(member_array(uid, (string)MUD_INFO_D->get_domain_lords(domain)) != -1)
                 return TRUE;
         }
         // not found...
         return FALSE;
     }
 
-    return member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1;
+    return member_array(uid, (string)MUD_INFO_D->get_domain_lords(domain)) != -1;
 }
 // }}}
 // archp {{{
@@ -236,7 +236,7 @@ public int Dlordp(object ob, string domain = "@any@")
 // --------------------------------------------------------------------------
 public int archp(object ob)
 {
-    return creatorp(ob) && (member_array(UPRIV_ARCH, MUD_INFO_D->getgroups(geteuid(ob))) != -1);
+    return creatorp(ob) && (member_array(UPRIV_ARCH, (string)MUD_INFO_D->getgroups(geteuid(ob))) != -1);
 }
 // }}}
 // adminp {{{
@@ -248,7 +248,7 @@ public int archp(object ob)
 // --------------------------------------------------------------------------
 public int adminp(object ob)
 {
-    return creatorp(ob) && (member_array(UPRIV_ADMIN, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+    return creatorp(ob) && (member_array(UPRIV_ADMIN, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 // }}}
 ///  @}

@@ -62,7 +62,7 @@ public string get_cwd(object who = 0)
 
     // is (or was) who interactive?
     if(userp(who))
-        return who->query_cwd();
+        return (string)who->query_cwd();
 
     // for all other obiects return "dirname(filename)"
     return dirname(file_name(who));

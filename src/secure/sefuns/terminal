@@ -68,7 +68,7 @@ public string strip_term_codes(string str, string term = "@any@")
 // --------------------------------------------------------------------------
 public string normal(void)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_NOR;
@@ -85,7 +85,7 @@ public string normal(void)
 // --------------------------------------------------------------------------
 public string inverse(string str)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_REV + str + VT100_NOR;
@@ -102,7 +102,7 @@ public string inverse(string str)
 // --------------------------------------------------------------------------
 public string blink(string str)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_BLINK + str + VT100_NOR;
@@ -119,7 +119,7 @@ public string blink(string str)
 // --------------------------------------------------------------------------
 public string bold(string str)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_BOLD + str + VT100_NOR;
@@ -136,7 +136,7 @@ public string bold(string str)
 // --------------------------------------------------------------------------
 public string underscore(string str)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_U + str + VT100_NOR;
@@ -155,7 +155,7 @@ public string underscore(string str)
 // --------------------------------------------------------------------------
 public string clear_screen(int flag = 0)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return (flag ? VT100_REF : VT100_CLR);
@@ -171,7 +171,7 @@ public string clear_screen(int flag = 0)
 // --------------------------------------------------------------------------
 public string clear_line(void)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_CSI + "2K";
@@ -187,7 +187,7 @@ public string clear_line(void)
 // --------------------------------------------------------------------------
 public string up_line(void)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return VT100_CSI + "A"; 
@@ -203,7 +203,7 @@ public string up_line(void)
 // --------------------------------------------------------------------------
 public string erase_line(void)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             return clear_line() + VT100_CSI + "79D";
@@ -221,7 +221,7 @@ public string erase_line(void)
 // --------------------------------------------------------------------------
 public string set_fg_color(int color = COL_WHITE, int bright = 0)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             switch(color)
@@ -250,7 +250,7 @@ public string set_fg_color(int color = COL_WHITE, int bright = 0)
 // --------------------------------------------------------------------------
 public string set_bg_color(int color = COL_BLACK, int bright = 0)
 {
-    switch(this_player()->query_env("TERM"))
+    switch((string)this_player()->query_env("TERM"))
     {
         case "vt100":
             switch(color)

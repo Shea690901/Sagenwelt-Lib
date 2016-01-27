@@ -63,7 +63,7 @@ public varargs mapping unique_mapping(mixed *arr, mixed sep, mixed skip)
             // sep is string => only objects allowed
             if(!objectp(elem))
                 continue;
-            val = call_other(elem, sep);
+            val = (mixed)call_other(elem, sep);
             if(!st && (val == skip))
                 continue;
             if(!ret[val])

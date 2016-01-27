@@ -86,7 +86,7 @@ private string mud_info_d_author(string file)
     if(!mud_info_d)
         return UNKNOWN_UID;
     else
-        return mud_info_d->author_file(file);
+        return (string)mud_info_d->author_file(file);
 }
 // }}}
 // ask mud_info_d for domain if we're dxne with startup {{{
@@ -102,7 +102,7 @@ private string mud_info_d_domain(string file)
     if(!mud_info_d)
         return UNKNOWN_DOMAIN;
     else
-        return mud_info_d->domain_file(file);
+        return (string)mud_info_d->domain_file(file);
 }
 // }}}
 // ask tmpd for author if we're dxne with startup {{{
@@ -118,7 +118,7 @@ private string tmpd_author(string file)
     if(!tmpd)
         return UNKNOWN_UID;
     else
-        return tmpd->author_file(file);
+        return (string)tmpd->author_file(file);
 }
 // }}}
 // ask tmpd for domain if we're dxne with startup {{{
@@ -134,7 +134,7 @@ private string tmpd_domain(string file)
     if(!tmpd)
         return UNKNOWN_DOMAIN;
     else
-        return tmpd->domain_file(file);
+        return (string)tmpd->domain_file(file);
 }
 // }}}
 // }}}

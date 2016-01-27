@@ -270,7 +270,6 @@ private string *acl(int request, mixed info)
 public int check_acl(int request, string euid, string egid, mixed info)
 {
     string *access, // access control list for given file
-           *grps,   // groups this_interactive belongs to
             author, // author
             domain; // and domain of the requested path
     object  ti;
@@ -351,18 +350,17 @@ public int check_acl(int request, string euid, string egid, mixed info)
     {
         if(member_array(UPRIV_MORTAL, access) >= 0)
             return TRUE;
-        if((member_array(UPRIV_ELDER, access) >= 0) && ti->is_elder())
+        if((member_array(UPRIV_ELDER, access) >= 0) && elderp(ti))
             return TRUE;
-        if((member_array(UPRIV_WIZARD, access) >= 0) && ti->is_wiz())
+        if((member_array(UPRIV_WIZARD, access) >= 0) && creatorp(ti))
             return TRUE;
-        grps = ti->get_groups();
-        if((member_array(UPRIV_D_WIZ, access) >= 0) && (member_array(domain, grps)))
+        if((member_array(UPRIV_D_WIZ, access) >= 0) && Dcreatorp(ti, domain))
             return TRUE;
-        if((member_array(UPRIV_D_LORD, access) >= 0) && ti->is_lord(domain))
+        if((member_array(UPRIV_D_LORD, access) >= 0) && Dlordp(ti, domain))
             return TRUE;
-        if((member_array(UPRIV_ARCH, access) >= 0) && ti->is_arch())
+        if((member_array(UPRIV_ARCH, access) >= 0) && archp(ti))
             return TRUE;
-        if((member_array(UPRIV_ADMIN, access) >= 0) && ti->is_admin())
+        if((member_array(UPRIV_ADMIN, access) >= 0) && adminp(ti))
             return TRUE;
     }
 
@@ -632,9 +630,21 @@ private void preload(string str)
 // --------------------------------------------------------------------------
 private void crash(string crash_message, object command_giver, object current_object)
 {
+    object *usr = users();
+
     syslog(LOG_KERN|LOG_EMERG, "master::crash(\"%s\", %O, %O)", crsh_message, commmd_giver, current_object);
-    // tell_users("Game Driver shouts: Ack! I think the game is crashing!\n");
-    users()->quit();        // force every user to logout
+
+    // inform the player
+    reset_eval_cost();                  // we might need to do a lot of calls...
+    message(MSGCLASS_SYSTEM, "Game Driver shouts: Ack! I think the game is crashing!\n", usr);
+
+    // and send them the logout shutdown event
+    reset_eval_cost();                  // we might need to do a lot of calls...
+    event(usr, "shutdown");             // force every user to logout
+
+    // terminate daemons and other secure objects gracefully
+    reset_eval_cost();                  // we might need to do a lot of calls...
+    event(objects( (: file_name($1)[0..8] == "/secure/" :) ), "shutdown");
 }
 // }}}
 ///  @} }}}
