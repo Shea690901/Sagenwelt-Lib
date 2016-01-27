@@ -6,6 +6,8 @@
 * @date 2016-01-11
 */
 
+inherit LIVING;
+
 private nosave string cwd;          ///< current working directory
 
 /**
