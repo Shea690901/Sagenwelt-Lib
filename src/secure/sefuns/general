@@ -8,6 +8,7 @@
 
 private int debug_flag = FALSE;
 
+// set_debug {{{
 // --------------------------------------------------------------------------
 /// @brief set_debug
 /// set simul_efun internal debug_flag
@@ -22,7 +23,8 @@ public int set_debug(int val)
     debug_flag = val;
     return o_val;
 }
-
+// }}}
+// get_debug {{{
 // --------------------------------------------------------------------------
 /// @brief get_debug_flag
 /// @Returns current setting of debug_flag
@@ -31,4 +33,45 @@ public int get_debug(void)
 {
     return debug_flag;
 }
+
+// }}}
+// cmp {{{
+// --------------------------------------------------------------------------
+/// @brief cmp 
+/// @Param a
+/// @Param b
+/// @Returns TRUE if a and b are semantical equal, FALSE otherwise
+// --------------------------------------------------------------------------
+public int cmp(mixed a, mixed b)
+{
+    if(arrayp(a) && arrayp(b))
+    {
+        int i;
+
+        if((i = sizeof(a)) != sizeof(b))
+            return FALSE;
+        while(i--)
+        {
+            if(!cmp(a[i], b[i]))
+                return FALSE;
+        }
+        return TRUE;
+    }
+    else if(mapp(a) && mapp(b))
+    {
+        mixed k, v1, v2;
+
+        if(sizeof(a) != sizeof(b))
+            return FALSE;
+        foreach(k, v1 in a)
+        {
+            if(undefinedp(v2 = b[k]) || !cmd(v1, v2))
+                return FALSE;
+        }
+        return TRUE;
+    }
+    else
+        return a == b;
+}
+// }}}
 ///  @}

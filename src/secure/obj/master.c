@@ -423,6 +423,9 @@ private void startup_summary(void)
 #endif
     out += sprintf("%:'='80s\n", "=");
     write(out);
+
+    // now the mudlib is up and running, tell the simul_efuns so...
+    done_startup();
 }
 // }}}
 // }}}
@@ -682,94 +685,14 @@ private string get_root_uid(void)
 ///
 /// For this mudlib player or wizard names are lowercase while domain names
 /// are capitalized
-/// Also this mudlib uses this function to get ownership of directories for
-/// the 'ls' commamd
 /// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
 /// is used.
 /// @Param file - absolute path to source of some object
 /// @Returns name of author - for the security system this will be the uid
 // --------------------------------------------------------------------------
-public string author_file(string file)
+private string author_file(string file)
 {
-    string *path;
-    int     sp,
-            fs;
-
-    if(file[0] != '/')                  // strange argument, without any '/'...
-        return UNKNOWN_UID;
-
-#if 0           // none yet
-    // special cases
-    switch(filename)
-    {
-        default:
-            break;
-    }
-#endif
-
-    path = explode(file, "/");          // path[0] == "" !!!
-    sp   = sizeof(path);
-    fs   = file_size(file);
-
-    switch(path[1])
-    {
-        case "players":                 // some player file
-            // ""/"players"/"w"/"wiz"/"file.c"
-            // 0  1         2   3     4
-            if((sp > 4) || (sp == 4) && (fs == -2))
-                return path[3];         // file/directory is owned by some player
-            else if(fs == -2)
-                return BB_UID;          // the other directories belong to backbone
-            break;
-        case "Domains":                 // file belongs to some domain
-            // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
-            // 0  1         2         3         4     5
-            if(((sp >= 5) && (path[3] == "members")) &&
-                ((sp > 5) || ((sp == 5) && (fs == -2))))
-                return path[4];         // but is owned by one of it's members
-            // ""/"Domains"/"Example"/"file.c"
-            // 0  1         2         3
-            else if((sp > 3) || ((sp == 3) && (fs == -2)))
-                return path[2];         // this file/directory truly belongs to the domain
-            else if(fs == -2)
-                return BB_UID;          // the other directories belong to backbone
-            break;
-        case "std":                     // everything here belongs backbone
-            return BB_UID;
-            break;
-        case "secure":                  // these are all security relevant!!!
-            return ROOT_UID;
-            break;
-        case "var":                     // some special cases
-            // ""/"var"/"save"/"file.o"
-            // 0  1     2       3
-            if((sp >= 3) && (path[2] == "save"))
-                return ROOT_UID;
-            else if((sp > 3) && (path[2] == "spool"))
-            {
-                // ""/"var"/"spool"/"mail"/"p"/"player"/"mail_dirs"
-                // 0  1     2       3      4   5        6
-                if((sp > 5) && (path[3] == "mail"))
-                    return path[5];
-                else
-                    return BB_UID;
-            }
-            // ""/"var"/"tmp"/...
-            // 0  1     2
-            else if((sp > 3) && (path[2] == "tmp"))
-                return TMPD->author_file(path);
-            else
-                return BB_UID;
-            break;
-        case "tmp":
-            // ""/"tmp"/...
-            // 0  1
-            if(sp > 2)
-                return TMPD->author_file(path);
-            else
-                return BB_UID;
-    }
-    return UNKNOWN_UID;                 // everything else is unknown
+    return author_of(file);
 }
 // }}}
 // domain_file {{{
@@ -783,94 +706,15 @@ public string author_file(string file)
 /// heart_beats, etc).
 ///
 /// For this mudlib domain names are uppercase
-/// Also this midlib uses this function to get groupmembership of directories
-/// for the 'ls' commamd
 /// @Attention This routine is only used by the driver if PACKAGE_MUDLIB_STATS
 /// is used.
 /// @Param file
 /// @Returns domain the file belongs to - for the security system this will be
 /// the gid
 // --------------------------------------------------------------------------
-public string domain_file(string file)
+private string domain_file(string file)
 {
-    string *path;
-    int     sp,
-            fs;
-
-    if(file[0] != '/')                  // strange argument, without any '/'...
-        return UNKNOWN_DOMAIN;
-
-    // special cases
-    switch(filename)
-    {
-        case MAIL_D:
-            return MAIL_DOMAIN;
-        case NEWS_D:
-            return NEWS_DOMAIN;
-        default:
-            breao;
-    }
-
-    path = explode(file, "/");      // path[0] == "" !!!
-    sp   = sizeof(path);
-    fs   = file_size(file);
-
-    switch(path[1])
-    {
-        case "players":                 // some player file
-            // ""/"players"/"w"/"wiz"/"file.c"
-            // 0  1         2   3     4
-            if((sp > 4) || (sp == 4) && (fs == -2))
-                return (MUD_INFO_D->is_wiz(path[3])) ?
-                        WIZARD_DOMAIN : // wizard
-                        PLAYER_DOMAIN;  // mortal
-            else if(fs == -2)
-                return BB_DOMAIN;       // the other directories belong to backbone
-            break;
-        case "Domains":                 // file belongs to some domain
-            // ""/"Domains"/"Example"/"file.c"
-            // 0  1         2         3
-            if((sp > 3) || ((sp == 3) && (fs == -2)))
-                return path[2];         // this file truly belongs to the domain
-            else if(sp == 2)
-                return BB_DOMAIN;       // the '/Domains' directory belongs to backbone
-            break;
-        case "std":                     // everything here belongs backbone
-        case "secure":                  // this too is backbone
-            return BB_DOMAIN;
-            break;
-        case "var":
-            // ""/"var"/"spool"/...
-            // 0  1     2       3
-            if((sp > 3) && (path[2] == "spool"))
-            {
-                // ""/"var"/"spool"/"mail"/...
-                // 0  1     2       3      4
-                if((sp >= 4) && (path[3] == "mail"))
-                    return MAIL_DOMAIN;
-                // ""/"var"/"spool"/"news"/...
-                // 0  1     2       3      4
-                else if((sp >= 4) && (path[3] == "news"))
-                    return NEWS_DOMAIN;
-                else
-                    return BB_DOMAIN;
-            }
-            // ""/"var"/"tmp"/...
-            // 0  1     2
-            else if((sp > 3) && (path[2] == "tmp"))
-                return TMPD->domain_file(path);
-            else
-                return BB_DOMAIN;
-            break;
-        case "tmp":
-            // ""/"tmp"/...
-            // 0  1
-            if(sp > 2)
-                return TMPD->domain_file(path);
-            else
-                return BB_DOMAIN;
-    }
-    return UNKNOWN_DOMAIN;              // everything else shouldn't have any privileges
+    return domain_of(file);
 }
 // }}}
 // creator_file {{{
@@ -895,8 +739,8 @@ public string domain_file(string file)
 private string creator_file(string filename)
 {
     return("%s:%s",
-            author_file(filename),
-            domain_file(filename));
+            author_of(filename),
+            domain_of(filename));
 }
 // }}}
 // privs_file {{{
@@ -1582,7 +1426,7 @@ private string get_save_file_name(string file, object who)
 // --------------------------------------------------------------------------
 private string make_path_absolute(string rel_path)
 {
-    return canonical_path(absolute_path(rel_path));
+    return canonical_path(get_cwd(PO()) + "/" + rel_path);
 }
 // }}}
 ///  @} }}}
@@ -1632,16 +1476,17 @@ private string parser_error_message(int type, object ob, mixed arg, int flag)
             {
                 mixed  *descs = unique_array(arg, (: $1->the_short() :));
                 string  str;
+                int     sz;
 
-                if(sizeof(descs) == 1)
+                if((sz = sizeof(descs)) == 1)
                     return ret + "Which " + descs[0][0]->short() + " do you mean?\n";
                 str = ret + "Do you mean ";
-                for(int i = 0; i < sizeof(descs); i++)
+                for(int i = 0; i < sz; i++)
                 {
                     if(sizeof(descs[i]) > 1)
                         str += "one of ";
                     str += descs[i][0]->the_short();
-                    if(i == sizeof(descs) - 1)
+                    if(i == sz - 1)
                         str += " or ";
                     else
                         str += ", ";
@@ -1844,7 +1689,7 @@ private string object_name(object ob)
     if(!ob)                     // ob no longer exists
         return "<destructed>";
     if(interactive(ob))         // player
-        return sprintf("<%s's link>", ob->query_uid());
+        return sprintf("<%s's link>", getuid(ob));
     return file_name(ob);
 }
 // }}}
@@ -1886,4 +1731,22 @@ private int save_ed_setup(object user, int config)
 ///  @} }}}
 ///  }}}
 
+// event handler {{{
+// destruct {{{
+public void event_destruct(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_master();
+}
+// }}}
+// shutdown {{{
+public void event_shutdown(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_master();
+}
+// }}}
+// }}}
 ///  @}

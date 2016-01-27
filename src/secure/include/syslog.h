@@ -26,6 +26,8 @@ varargs void syslog(int priority, string format, mixed *args...);
 #define LOG_FTP               6                     ///< ftp daemon
 #define LOG_MAIL              7                     ///< mail subsystem
 #define LOG_NEWS              8                     ///< news subsystem
+
+#define LOG_DESTRUCT        127                     ///< calls to efun::destruct
 // }}}
 
 // facilities between LOG_USER and LOG_FACLITY (both included) are free to be

@@ -99,7 +99,6 @@ private varargs void _syslog(object caller, string uid, string gid, int priority
     SYSLOGD->log(caller, uid, gid, facility, msg);
 }
 // }}}
-
 // syslog {{{
 // --------------------------------------------------------------------------
 /// @brief syslog
@@ -116,17 +115,16 @@ private varargs void _syslog(object caller, string uid, string gid, int priority
 // --------------------------------------------------------------------------
 public varargs void syslog(int priority, string format, mixed *args...)
 {
-    object  po;         // who calls? (as object)
+    object  who;        // who calls? (as object)
     string  uid,        // author of file calling syslog
             gid;        // domain of file calling syslog
 
-    po  = PO();
-    uid = getuid(po);
-    gid = getgid(po);
-    _syslog(po, uid, gid, facility, format, args...);
+    who  = TO();
+    uid = getuid(who);
+    gid = getgid(who);
+    _syslog(who, uid, gid, facility, format, args...);
 }
 // }}}
-
 // m_syslog {{{
 // --------------------------------------------------------------------------
 /// @brief syslog
@@ -141,12 +139,15 @@ public varargs void syslog(int priority, string format, mixed *args...)
 // --------------------------------------------------------------------------
 public varargs void m_syslog(string uid, string gid, int priority, string format, mixed *args...)
 {
-    object po = PO();
+    object who = TO();
 
-    if(po == master())
-        _syslog(master(), uid, gid, facility, format, args...);
+    if(who == master())
+        _syslog(who, uid, gid, facility, format, args...);
     else
-        _syslog(simul_efun(), ROOT_UID, BB_DOMAIN, "illegal call to m_syslog(...) by %O", po);
+    {
+        _syslog(simul_efun(), ROOT_UID, BB_DOMAIN, LOG_AUTH|LOG_ERR, "illegal call to m_syslog(...) by %O", who);
+        error("illegal call to m_syslog");
+    }
 }
 // }}}
 ///  @}

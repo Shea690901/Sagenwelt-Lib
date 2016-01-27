@@ -6,35 +6,34 @@
 /// @version 0.0.0
 /// @date 2016-01-24
 
+// getgid {{{
 // --------------------------------------------------------------------------
 /// @brief getgid 
 /// 
 /// @Param who - defaults to this_object()
 /// @Returns real group id
 // --------------------------------------------------------------------------
-public varargs string getgid(mixed who)
+public string getgid(mixed who = 0)
 {
-    string ret;
-
     if(!who)
-        who = PO();
+        who = TO();
 
-    ret = efun::getuid(who);
-    return explode(ret, ":")[1];
+    return explode(efun::getuid(who), ":")[1];
 }
-
+// }}}
+// getegid {{{
 // --------------------------------------------------------------------------
 /// @brief getegid 
 /// 
 /// @Param who - defaults to this_object()
 /// @Returns effective group id
 // --------------------------------------------------------------------------
-public varargs string getegid(mixed who)
+public string getegid(mixed who = 0)
 {
     string ret;
 
     if(!who)
-        who = PO();
+        who = TO();
 
     ret = efun::geteuid(who);
     if(!ret)
@@ -42,7 +41,8 @@ public varargs string getegid(mixed who)
     else
         return explode(ret, ":")[1];
 }
-
+// }}}
+// setegid {{{
 // --------------------------------------------------------------------------
 /// @brief setegid 
 /// 
@@ -51,42 +51,41 @@ public varargs string getegid(mixed who)
 // --------------------------------------------------------------------------
 public int setegid(string egid)
 {
-    object    who = PO();
+    object    who = TO();
     function    f = bind( (: efun::seteuid :), who);
     string    arg = geteuid(who) + ":" + egid;
 
     return (*f)(arg);
 }
-
+// }}}
+// getuid {{{
 // --------------------------------------------------------------------------
 /// @brief getuid 
 /// 
 /// @Param who - defaults to this_object()
 /// @Returns real user id
 // --------------------------------------------------------------------------
-public varargs string getuid(mixed who)
+public string getuid(mixed who = 0)
 {
-    string ret;
-
     if(!who)
-        who = PO();
+        who = TO();
 
-    ret = efun::getuid(who);
-    return explode(ret, ":")[0];
+    return explode(efun::getuid(who), ":")[0];
 }
-
+// }}}
+// geteuid {{{
 // --------------------------------------------------------------------------
 /// @brief geteuid 
 /// 
 /// @Param who - defaults to this_object()
 /// @Returns effective user id
 // --------------------------------------------------------------------------
-public varargs string geteuid(mixed who)
+public string geteuid(mixed who = 0)
 {
     string ret;
 
     if(!who)
-        who = PO();
+        who = TO();
 
     ret = efun::geteuid(who);
     if(!ret)
@@ -94,7 +93,8 @@ public varargs string geteuid(mixed who)
     else
         return explode(ret, ":")[0];
 }
-
+// }}}
+// seteuid {{{
 // --------------------------------------------------------------------------
 /// @brief seteuid 
 /// 
@@ -103,24 +103,152 @@ public varargs string geteuid(mixed who)
 // --------------------------------------------------------------------------
 public int seteuid(string euid)
 {
-    object    who = PO();
+    object    who = TO();
     function    f = bind( (: efun::seteuid :), who);
     string    arg = euid + ":" + getegid(who);;
 
     return (*f)(arg);
 }
-
+// }}}
+// init_eids {{{
 // --------------------------------------------------------------------------
-/// @brief seteids 
+/// @brief init_eids 
+///
+/// This function must be called within each object that wants to do any
+/// security relevant action (e.g. read/write files, clone other objects, ...)
 /// @Returns 1 if successfully set, 0 otherwise
 // --------------------------------------------------------------------------
-public int seteids(void)
+public int init_eteids(void)
 {
-    object    who = PO();
-    string    arg = efun::getuid(who);
-    function    f = bind( (: efun::seteuid :), who);
+    object   who = TO();
+    function   f = bind( (: efun::seteuid :), who);
 
-    return (*f)(arg);
+    return (*f)(efun::getuid(who));
 }
+// }}}
 
+// playerp {{{
+// --------------------------------------------------------------------------
+/// @brief playerp 
+///
+/// This function tests if the supplied object is a player
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int playerp(object ob)
+{
+    return ob == find_player(getuid(ob));
+}
+// }}}
+// elderp {{{
+// --------------------------------------------------------------------------
+/// @brief elderp 
+///
+/// This function tests if the supplied object has elder rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int elder(object ob)
+{
+    return playerp(ob) && (member_array(UPRIV_ELDER, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
+// creatorp {{{
+// --------------------------------------------------------------------------
+/// @brief creatorp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int creatorp(object ob)
+{
+    return playerp(ob) && (member_array(UPRIV_WIZARD, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
+// Dcreatorp {{{
+// --------------------------------------------------------------------------
+/// @brief Dcreatorp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// and is member of either the supplied or any domain
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int Dcreatorp(object ob, string domain = "@any@")
+{
+    string uid;
+
+    // only creators may be domain member
+    if(!creatorp(ob))
+        return FALSE;
+
+    uid = getuid(ob);
+    if(domain == "@any@")
+    {
+        // check every domain
+        foreach(domain in MUD_INFO_D->get_domains())
+        {
+            if(member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1)
+                return TRUE;
+        }
+        // not found...
+        return FALSE;
+    }
+    return member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1;
+}
+// }}}
+// Dlordp {{{
+// --------------------------------------------------------------------------
+/// @brief Dlordp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// and is domain lord of either the supplied or any domain
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int Dlordp(object ob, string domain = "@any@")
+{
+    string  uid;
+
+    // only creators may be domain lords (well domain members but that
+    // distinction doesn't matter down below)
+    if(!creatorp(ob))
+        return FALSE;
+
+    uid = getuid(ob);
+    if(domain == "@any@")
+    {
+        // check every domain
+        foreach(domain in MUD_INFO_D->get_domains())
+        {
+            if(member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1)
+                return TRUE;
+        }
+        // not found...
+        return FALSE;
+    }
+
+    return member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1;
+}
+// }}}
+// archp {{{
+// --------------------------------------------------------------------------
+/// @brief archp 
+///
+/// This function tests if the supplied object has archwiz rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int archp(object ob)
+{
+    return creatorp(ob) && (member_array(UPRIV_ARCH, MUD_INFO_D->getgroups(geteuid(ob))) != -1);
+}
+// }}}
+// adminp {{{
+// --------------------------------------------------------------------------
+/// @brief adminp 
+///
+/// This function tests if the supplied object has admin rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int adminp(object ob)
+{
+    return creatorp(ob) && (member_array(UPRIV_ADMIN, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
 ///  @}

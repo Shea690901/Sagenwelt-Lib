@@ -6,6 +6,7 @@
 /// @version 0.0.0
 /// @date 2015-12-20
 
+// mssp_telopt {{{
 // --------------------------------------------------------------------------
 /// @brief mssp_telopt
 ///
@@ -125,7 +126,8 @@ string mssp_telopt()
         "WORLD ORIGINALITY"     : "Mostly Original",
     ]);
 }
-
+// }}}
+// mssp_login {{{
 // --------------------------------------------------------------------------
 /// @brief mssp_login
 ///
@@ -145,3 +147,108 @@ string mssp_login()
 
     return ret;
 }
+// }}}
+// author_file {{{
+// --------------------------------------------------------------------------
+/// @brief author_file
+///
+/// This is a helper function for sefun::author_of with the same semantics
+/// as master::author_file
+/// @Param file - absolute path to source of some object
+/// @Returns name of author - for the security system this will be the uid
+/// @Todo this is a preliminary implementation without using any mud_info_d
+/// functionality
+// --------------------------------------------------------------------------
+public string author_file(string file)
+{
+    string *path;
+    int     sp,
+            fs;
+
+    path = explode(file, "/");          // path[0] == "" !!!
+    sp   = sizeof(path);
+    fs   = file_size(file);
+
+    switch(path[1])
+    {
+        case "players":                 // some player file
+            // ""/"players"/"w"/"wiz"/"file.c"
+            // 0  1         2   3     4
+            if((sp > 4) || (sp == 4) && (fs == -2))
+                return path[3];         // file/directory is owned by some player
+            else if(fs == -2)
+                return BB_UID;          // the other directories belong to backbone
+            break;
+        case "Domains":                 // file belongs to some domain
+            // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
+            // 0  1         2         3         4     5
+            if(((sp >= 5) && (path[3] == "members")) &&
+                ((sp > 5) || ((sp == 5) && (fs == -2))))
+                return path[4];         // but is owned by one of it's members
+            // ""/"Domains"/"Example"/"file.c"
+            // 0  1         2         3
+            else if((sp > 3) || ((sp == 3) && (fs == -2)))
+                return path[2];         // this file/directory truly belongs to the domain
+            else if(fs == -2)
+                return BB_UID;          // the other directories belong to backbone
+            break;
+        case "var":                     // some special cases
+            if((sp > 3) && (path[2] == "spool"))
+            {
+                // ""/"var"/"spool"/"mail"/"p"/"player"/"mail_dirs"
+                // 0  1     2       3      4   5        6
+                if((sp > 5) && (path[3] == "mail"))
+                    return path[5];
+                else
+                    return BB_UID;
+            }
+    }
+    return UNKNOWN_UID;     // everything else is unknown to this function
+}
+// }}}
+// domain_file {{{
+// --------------------------------------------------------------------------
+/// @brief domain_file
+///
+/// This is a helper function for sefun::domain_of with the same semantics
+/// as master::domain_file
+/// @Param file
+/// @Returns domain the file belongs to - for the security system this will be
+/// the gid
+/// @Todo this is a preliminary implementation without using full mud_info_d
+/// functionality
+// --------------------------------------------------------------------------
+public string domain_file(string file)
+{
+    string *path;
+    int     sp,
+            fs;
+
+    path = explode(file, "/");      // path[0] == "" !!!
+    sp   = sizeof(path);
+    fs   = file_size(file);
+
+    switch(path[1])
+    {
+        case "players":                 // some player file
+            // ""/"players"/"w"/"wiz"/"file.c"
+            // 0  1         2   3     4
+            if((sp > 4) || (sp == 4) && (fs == -2))
+                return (is_wiz(path[3])) ?
+                        WIZARD_DOMAIN : // wizard
+                        PLAYER_DOMAIN;  // mortal
+            else if(fs == -2)
+                return BB_DOMAIN;       // the other directories belong to backbone
+            break;
+        case "Domains":                 // file belongs to some domain
+            // ""/"Domains"/"Example"/"file.c"
+            // 0  1         2         3
+            if((sp > 3) || ((sp == 3) && (fs == -2)))
+                return path[2];         // this file truly belongs to the domain
+            else if(sp == 2)
+                return BB_DOMAIN;       // the '/Domains' directory belongs to backbone
+            break;
+    }
+    return UNKNOWN_DOMAIN;              // everything else is unknown tl this function
+}
+// }}}
