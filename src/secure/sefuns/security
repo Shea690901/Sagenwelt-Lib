@@ -126,4 +126,129 @@ public int init_eteids(void)
     return (*f)(efun::getuid(who));
 }
 // }}}
+
+// playerp {{{
+// --------------------------------------------------------------------------
+/// @brief playerp 
+///
+/// This function tests if the supplied object is a player
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int playerp(object ob)
+{
+    return ob == find_player(getuid(ob));
+}
+// }}}
+// elderp {{{
+// --------------------------------------------------------------------------
+/// @brief elderp 
+///
+/// This function tests if the supplied object has elder rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int elder(object ob)
+{
+    return playerp(ob) && (member_array(UPRIV_ELDER, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
+// creatorp {{{
+// --------------------------------------------------------------------------
+/// @brief creatorp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int creatorp(object ob)
+{
+    return playerp(ob) && (member_array(UPRIV_WIZARD, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
+// Dcreatorp {{{
+// --------------------------------------------------------------------------
+/// @brief Dcreatorp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// and is member of either the supplied or any domain
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int Dcreatorp(object ob, string domain = "@any@")
+{
+    string uid;
+
+    // only creators may be domain member
+    if(!creatorp(ob))
+        return FALSE;
+
+    uid = getuid(ob);
+    if(domain == "@any@")
+    {
+        // check every domain
+        foreach(domain in MUD_INFO_D->get_domains())
+        {
+            if(member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1)
+                return TRUE;
+        }
+        // not found...
+        return FALSE;
+    }
+    return member_array(uid, MUD_INFO_D->get_domain_member(domain)) != -1;
+}
+// }}}
+// Dlordp {{{
+// --------------------------------------------------------------------------
+/// @brief Dlordp 
+///
+/// This function tests if the supplied object has creator rights (is wizard)
+/// and is domain lord of either the supplied or any domain
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int Dlordp(object ob, string domain = "@any@")
+{
+    string  uid;
+
+    // only creators may be domain lords (well domain members but that
+    // distinction doesn't matter down below)
+    if(!creatorp(ob))
+        return FALSE;
+
+    uid = getuid(ob);
+    if(domain == "@any@")
+    {
+        // check every domain
+        foreach(domain in MUD_INFO_D->get_domains())
+        {
+            if(member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1)
+                return TRUE;
+        }
+        // not found...
+        return FALSE;
+    }
+
+    return member_array(uid, MUD_INFO_D->get_domain_lords(domain)) != -1;
+}
+// }}}
+// archp {{{
+// --------------------------------------------------------------------------
+/// @brief archp 
+///
+/// This function tests if the supplied object has archwiz rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int archp(object ob)
+{
+    return creatorp(ob) && (member_array(UPRIV_ARCH, MUD_INFO_D->getgroups(geteuid(ob))) != -1);
+}
+// }}}
+// adminp {{{
+// --------------------------------------------------------------------------
+/// @brief adminp 
+///
+/// This function tests if the supplied object has admin rights
+/// @Returns TRUE/FALSE depending on result
+// --------------------------------------------------------------------------
+public int adminp(object ob)
+{
+    return creatorp(ob) && (member_array(UPRIV_ADMIN, MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+// }}}
 ///  @}
