@@ -55,7 +55,7 @@ debug log file : debug.log
 global include file : "/secure/include/std.h"
 
 # default message when error() occurs (optional)
-default error message : Ups!
+default error message : Oops!
 
 # default no-matching-action message
 default fail message : What?
@@ -178,14 +178,14 @@ sane sorting : 1
 # WARN_TAB: Some versions of the editor built in indent function use
 #   tabs for indenting. This options turns on a warning message for
 #   files indented with tabs instead of spaces.
-warn tab : 0
+warn tab : 1
 
 # WOMBLES: don't allow spaces between start/end of array/mapping/functional token chars so ({1,2,3}) still works, but ( { 1 , 2 , 3 } ) doesn't and ({ 1 , 2 , 3 }) does.
-wombles : 0
+wombles : 1
 
 # CALL_OTHER_TYPE_CHECK: enable type checking for call_other()
 # (-> operator on objects)
-call other type check : 0
+call other type check : 1
 
 # CALL_OTHER_WARN, make it warning instead of errors
 call other warn : 0
@@ -221,7 +221,7 @@ randomized resets : 1
 #   contain ANSI escape sequences.  Defining NO_ANSI causes all escapes
 #   (ASCII 27) to be replaced with a space ' ' before the string is passed
 #   to the action routines added with add_action.
-no ansi : 1
+no ansi : 0
 
 # STRIP_BEFORE_PROCESS_INPUT allows the location where the stripping is 
 # done to be controlled.  If it is defined, then process_input() doesn't
@@ -232,7 +232,7 @@ no ansi : 1
 #
 # If you anticipate problems with users intentionally typing in ANSI codes
 # to make your terminal flash, etc define this.
-strip before process input : 1
+strip before process input : 0
 
 # THIS_PLAYER_IN_CALL_OUT: define this if you wish this_player() to be
 #   usable from within call_out() callbacks.
@@ -250,7 +250,7 @@ trace code : 0
 # INTERACTIVE_CATCH_TELL: define this if you want catch_tell called on
 #   interactives as well as NPCs.  If this is defined, user.c will need a
 #   catch_tell(msg) method that calls receive(msg);
-interactive catch tell : 0
+interactive catch tell : 1
 
 # RECEIVE_SNOOP: define this if you want snoop text to be sent to
 #   the receive_snoop() function in the snooper object (instead of being
@@ -262,7 +262,7 @@ receive snoop : 1
 #   sent to the player even in the event that the player's catch_tell() is
 #   shadowed and the player may not be seeing what is being sent.  Messages
 #   of this sort will be prefixed with $$.
-snoop shadowed : 0
+snoop shadowed : 1
 
 #
 reverse defer : 0
@@ -316,7 +316,7 @@ supress argument warnings : 0
 enable_commands call init : 1
 
 #
-sprintf add_justified ignore ANSI colors : 1
+sprintf add_justified ignore ANSI colors : 0
 
 # APPLY_CACHE_BITS: defines the number of bits to use in the call_other cache
 #   (in interpret.c).
