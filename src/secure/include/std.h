@@ -9,7 +9,8 @@
 #ifndef __STD_H
 #define __STD_H
 
-#include "/secure/include/driver/runtime_config.h"
+#include <config.h>
+#include <driver/runtime_config.h>
 
 // standard booleans
 #define     FALSE           0
@@ -31,13 +32,18 @@
 #define     I_NOSC          2
 #define     I_SINGLE_CHAR   4
 
+// save_object flags
+#define     SO_NONE         0
+#define     SO_SAVE_ZERO    1
+#define     SO_SAVE_GZ      2
+
 // function short-cuts
-#define     TO      this_object
-#define     PO(x)   previous_object(x)
-#define     TI      this_interactive
-#define     TP(x)   this_player(x)
+#define     TO              this_object
+#define     PO(x)           previous_object(x)
+#define     TI              this_interactive
+#define     TP(x)           this_player(x)
 
 // paths
-#define     TMPDIR  "/tmp"
+#define     TMPDIR          "/tmp"
 
 #endif // __STD_H

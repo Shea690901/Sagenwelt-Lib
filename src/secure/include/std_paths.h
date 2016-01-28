@@ -9,7 +9,9 @@
 #ifndef __SEC_STD_PATHS_H
 #define __SEC_STD_PATHS_H
 
-// directories
+#include <config.h>
+
+// directories {{{
 #define LOG_DIR         "/var/log/"                 ///< logfiles
 #define PRIV_SAVE_DIR   "/var/save/"                ///< save-files of privileged objects
 #define CFG_DIR         "/var/cfg/"                 ///< base config files
@@ -20,11 +22,17 @@
 #define SEFUN_DIR       SECURE_DIR "sefuns/"        ///< simul_efun-modules
 
 // files
+#define __SAVE_FILE(x)      ((x) + __SAVE_EXT)      // create save file name (uncompressed)
+#define __SAVE_GZ_FILE(x)   ((x) + __SAVE_GZ_EXT)   // create save file name (compressed)
+
 #define PRELOADS        CFG_DIR "PRELOADS"          ///< file containing filenames to be preloaded
 
 #define ACL_READ_CFG    CFG_DIR "Read.acl"          ///< standard acl for read access
 #define ACL_WRITE_CFG   CFG_DIR "Write.acl"         ///< standard acl for write access
 #define PRIVS_CFG       CFG_DIR "Privs.cfg"         ///< default privs for all objects
+
+#define WELCOME_MSG     CFG_DIR "welcome.txt"       ///< welcome message, displayed @ logon
+#define MOTD            CFG_DIR "motd.txt"          ///< message of the day, displayed @ logon
 
 // library
 #define YES_NO          SECURE_LIB_DIR "yes_no"     ///< module for yes_no questions

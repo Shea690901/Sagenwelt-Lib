@@ -6,6 +6,10 @@
 /// @version 0.0.0
 /// @date 2015-12-20
 
+private mapping domains;            // everything domain related
+private mapping players;            // everything player related
+private mapping help_files;         // which help file contains what?
+
 // --------------------------------------------------------------------------
 /// @brief mssp_telopt
 ///
@@ -13,7 +17,7 @@
 /// master::get_mud_status()
 /// @Returns mapping with appropriate key:value pairs
 // --------------------------------------------------------------------------
-string mssp_telopt()
+public string mssp_telopt(void)
 {
     string  *intermud = ({});           // which intermud versions are
                                         // supported?
@@ -37,12 +41,12 @@ string mssp_telopt()
         "HOSTNAME"              : __MUD_IP__,   ///< @todo host_lookup?
         "PORT"                  : itoa(query_host_port()),
         "CODEBASE"              : "Sagenwelt 0.0.0",            // Please don't change this one...
-        "CONTACT"               : "your@email.address",         // But this needs changing
+        "CONTACT"               : __ADMIN_EMAIL,                // look into 'secure/include/config.h'
         "CREATED"               : "2015",
         "ICON"                  : "http://"+__MUD_IP__+"/favicon.ico",
         "IP"                    : __MUD_IP__,
-        "LANGUAGE"              : "English",
-        "LOCATION"              : "Germany",
+        "LANGUAGE"              : __LANGUAGE,
+        "LOCATION"              : __LOCATION,
         "MINIMUM AGE"           : "13",         ///< @todo check age limits
         "WEBSITE"               : "http://"+__MUD_IP__+"/",
 
@@ -54,12 +58,12 @@ string mssp_telopt()
         "GAMEPLAY-NOTES"        : "Part Educational",
         "STATUS"                : "Alpha",
         "GAMESYSTEM"            : "Custom",
-        "GAMESYSTEM-NOTE§"     : "D&D-based",
+        "GAMESYSTEM-NOTE§"      : "D&D-based",
         "INTERMUD"              : (sizeof(intermud) ? implode(intermud, "\t") : "0"),
 
             // world
-        "AREAS"                 : "0",
-        "HELPFILES"             : "1",
+        "AREAS"                 : sizeof(keys(domains)),
+        "HELPFILES"             : sizeof(keys(help_files)),
         "HELPFILES-NOTES"       : "each command, and other docs",
         "MOBILES"               : "N/A",
         "MOBILES-NOTES"         : "npc's can be cloned, so there can be thousands",
@@ -84,7 +88,7 @@ string mssp_telopt()
         "MXP"                   : "0",
         "PUEBLO"                : "0",
         "UTF-8"                 : "1",
-        "VT100"                 : "0",
+        "VT100"                 : "1",
         "XTERM 256 COLORS"      : "0",
 
             // commercial
@@ -132,7 +136,7 @@ string mssp_telopt()
 /// it to a string representation which may be used for the login-interface.
 /// @Returns MSSP-info formated as string
 // --------------------------------------------------------------------------
-string mssp_login()
+public string mssp_login(void)
 {
     mapping mssp = mssp_telopt();
     string  ret  = "MSSP-REPLY-START\r\n";
@@ -243,4 +247,71 @@ public string domain_file(string file)
             break;
     }
     return UNKNOWN_DOMAIN;              // everything else is unknown tl this function
+}
+
+// helper functions {{{
+// save_mud_info() {{{
+// --------------------------------------------------------------------------
+/// @brief save_mud_info
+/// the mud_info_d is a _very_ important object, as such we must be extremly
+/// careful when saving!
+/// @Returns -
+// --------------------------------------------------------------------------
+private void save_mud_info(void)
+{
+    // move old backup copy out of the way
+    if(file_size(MUD_INFO_SAVE + ".bak") >= 0)
+        rename(MUD_INFO_SAVE + ".bak", MUD_INFO_SAVE + ".bak~");
+
+    // make backup of old save file
+    if((file_size(MUD_INFO_SAVE) >= 0) && (cp(MUD_INFO_SAVE, MUD_INFO_SAVE + ".bak") != 1))
+    {
+        syslog(LOG_MUD_INFO|LOG_EMERG, "save_mud_info: can't save save file!");
+        efun::shutdown(-2);
+    }
+    else if(!save_obiect(MUD_INFO_SAVE))  // save current values
+    {
+        // panic! couldn't save...
+        syslog(LOG_MUD_INFO|LOG_EMERG, "save_mud_info: can't save mud_info!");
+        efun::shutdown(-2);
+    }
+    else                                // now we can remove old backup
+        rm(MUD_INFO_SAVE + ".bak~");
+}
+
+// std applies
+private void create(void)
+{
+    init_eids();
+    restore_object(MUD_INFO_SAVE);
+    if(!domains)
+        domains = ([]);
+    if(!players)
+        players = ([]);
+    if(!help_files)
+        help_files = ([]);
+}
+
+private int clean_up(int arg)
+{
+    return 0;
+}
+
+private void reset()
+{
+    save_object(MUD_INFO_SAVE);
+}
+
+// event handler
+public void event_destruct(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_mud_info();
+}
+public void event_shutdown(void)
+{
+    if(origin() != ORIGIN_EFUN)
+        return;
+    save_mud_info();
 }

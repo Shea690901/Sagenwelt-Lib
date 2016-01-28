@@ -11,7 +11,7 @@
 
 #include <std_paths.h>      // standard paths used by various objects
 
-#define MASTER_SAVE     PRIV_SAVE_DIR "master"
+#define MASTER_SAVE     __SAVE_FILE(PRIV_SAVE_DIR "master")
 
 public int       check_acl(int request, string euid, string egid, mixed info);
 public int       valid_read(string file, object ob, string func);

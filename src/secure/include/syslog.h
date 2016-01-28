@@ -20,11 +20,13 @@ varargs void syslog(int priority, string format, mixed *args...);
 #define LOG_KERN              2                     ///< kernel messages (reserved for master/simul_efuns)
 #define LOG_AUTH              3                     ///< security/authorization messages
 #define LOG_DAEMON            4                     ///< system daemons without separate facility value
-#define LOG_CRON              5                     ///< clock daemon (cron and at)
-#define LOG_FTP               6                     ///< ftp daemon
-#define LOG_MAIL              7                     ///< mail subsystem
-#define LOG_NEWS              8                     ///< news subsystem
+#define LOG_MUD_INFO          5                     ///< mud info daemon
+#define LOG_CRON              6                     ///< clock daemon (cron and at)
+#define LOG_FTP               7                     ///< ftp daemon
+#define LOG_MAIL              8                     ///< mail subsystem
+#define LOG_NEWS              9                     ///< news subsystem
 
+#define LOG_SHUTDOWN        126                     ///< calls to efun::shutdown
 #define LOG_DESTRUCT        127                     ///< calls to efun::destruct
 
 // facilities between LOG_USER and LOG_FACLITY (both included) are free to be
