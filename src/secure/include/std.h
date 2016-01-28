@@ -25,6 +25,12 @@
 #define     SO_SAVE_ZERO    1
 #define     SO_SAVE_GZ      2
 
+// input_to flags
+#define     I_NONE          0
+#define     I_NOECHO        1
+#define     I_NOSC          2
+#define     I_SINGLE_CHAR   4
+
 // function short-cuts
 #define     TO      this_object
 #define     PO(x)   previous_object(x)
