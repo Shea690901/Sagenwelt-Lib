@@ -407,7 +407,7 @@ private void startup_summary(void)
             startup_info[3], startup_info[4]);
 #endif
     out += sprintf("%:'='80s\n", "=");
-    write(out);
+    debug_message(out);
 
     // now the mudlib is up and running, tell the simul_efuns so...
     done_startup();
@@ -560,32 +560,32 @@ private void preload(string str)
 #endif
 
     startup_info[1]++;
-    write("Preloading: '" + str + "'...");
+    debug_message("Preloading: '" + str + "'...");
 
     // everything either has
     if(err = catch(load_object(str)))
     {
         // compile errors
-        write("Got error: '" + err + "'...");
+        debug_message("Got error: '" + err + "'...");
         startup_info[2]++;
     }
     else
         // or loads fine...
-        write("Done!...");
+        debug_message("Done!...");
 #ifdef __HAS_RUSAGE__
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
         t = after["utime"] - before["utime"];
-        write("utime: " + t + "ms...")
+        debug_message("utime: " + t + "ms...")
         startup_info[3] += t;
         t = after["stime"] - before["stime"];
-        write("utime: " + t + "ms")
+        debug_message("utime: " + t + "ms")
         startup_info[4] += t;
     }
 #endif
 
-    write("\n");
+    debug_message("\n");
     if(startup_info[0] == startup_info[1])  // all objects tried to load?
         startup_summary();
 }
@@ -929,6 +929,15 @@ private int valid_override(string file, string efun_name, string mainfile)
     if((mainfile[0..6] == "/secure") || test_bit(privs_file(mainfile), PRIV_OVERRIDE))
         return TRUE;
 
+    // special cases
+    switch(efun_name)
+    {
+        case "get_char":
+        case "input_to":
+        case "getuid":
+            return file == INPUT_SYSTEM;
+    }
+
     // everything else fails
     syslog(LOG_AUTH|LOG_ERR,
             "Privilege violation: valid_oberride(\"%s\", \"%s\", \"%s\")",
@@ -1013,7 +1022,10 @@ private int valid_seteuid(object ob, string t_euid)
     // interactives may change their current group to any they are a member of
     if(ob == TI())
     {
-        if(uids[0] == t_euids[0])
+        // let new players become themselves
+        if(uid[0] == NEW_PLAYER_UID)
+            return (ob->get_name() == t_euids[0]) && (t_euids[1] == PLAYER_DOMAIN);
+        else if(uids[0] == t_euids[0])
         {
             string *grps = MUD_INFO_D->get_groups(uids[0]);
             if(member_array(t_euids[1], grps) != -1)
@@ -1185,11 +1197,10 @@ private object connect(int port)
     // port specific initialization (if any)
     switch(port)
     {
-        case TELNET_PORT:
-        case SSL_PORT:
+        case __MUD_PORT__:
             break;
         default:
-            write(sprintf("This shouldn't have happened!\nGot portnr.: %05d\n", port));
+            debug_message(sprintf("This shouldn't have happened!\nGot portnr.: %05d\n", port));
             return 0;
     }
 
