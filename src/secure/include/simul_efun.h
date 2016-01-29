@@ -11,13 +11,24 @@
 
 #include <pragmas.h>        // setting standard pragmas
 #include <syslog.h>         // needed for logging
+#include <messages.h>       // needed for communication
 
+// preprocessor macros for sefuns
+
+// function prototypes (ordered by groups)
 // simul_efun_helper
 public          void     done_startup(void);
 // array
 public          mixed   *distinct_array(mixed *arr);
 public          mixed   *scramble_array(mixed *arr);
 public varargs  mapping  unique_mapping(mixed *arr, mixed sep, mixed skip)
+// communication
+public          void     printf(string format, mixed *args...);
+public          void     say(string msg, mixed *exclude, int msg_class = MSGCLASS_SYSTEM);
+public          void     shout(string msg, int msg_class = MSGCLASS_SYSTEM);
+public          void     tell_object(object ob, string msg, int msg_class = MSGCLASS_SYSTEM);
+public          void     tell_room(mixed ob, string msg, object *exclude, int msg_class = MSGCLASS_SYSTEM);
+public          void     write(string msg, int msg_class = MSGCLASS_SYSTEM);
 // driver
 public varargs  mixed    debug_info(int req, mixed *args...);
 public          int      exec(object to, object from);
@@ -69,6 +80,7 @@ public          string   setegid(string egid);
 public          string   getuid(mixed who);
 public          string   getugid(mixed who);
 public          string   seteuid(string euid);
+public          int      cred_cmp(mixed cred1, mixed cred2, int f = CRED_CMP_EGID);
 
 public          int      playerp(object ob);
 public          int      elder(object ob);

@@ -28,11 +28,15 @@
 #define NOBODY_UID      "__nobody__"                    // uid with no special privileges
 #define UNKNOWN_UID     "__unknown__"                   // invalid uid
 
+#define NEW_PLAYER_UID  "__new_player__"                // guest player
+#define GUEST_UID       "__guest_%d__"                  // guest player
+
 // standard gids
 #define BB_DOMAIN       "__Backbone__"                  // backbone domain
 #define PLAYER_DOMAIN   "__Mortals__"                   // for statistics and access privileges
 #define WIZARD_DOMAIN   "__Wizards__"                   // for statistics and access privileges
 #define NOBODY_DOMAIN   "__Nodomain__"                  // gid with no special privileges
+#define GUEST_DOMAIN    "__Guest__"                     // guest player
 #define UNKNOWN_DOMAIN  "__Unknown__"                   // invalid domain
 
 #define MAP_DOMAIN      "__MAP__"                       // gid for mapd

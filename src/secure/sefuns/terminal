@@ -29,7 +29,7 @@ private void init_terminal_sefuns(void)
 // --------------------------------------------------------------------------
 public string *supported_terminals(void)
 {
-    return keys(strip_patterns) + ({ "<none>" });
+    return keys(strip_patterns);
 }
 
 // --------------------------------------------------------------------------

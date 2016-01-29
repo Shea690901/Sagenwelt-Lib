@@ -21,6 +21,7 @@
                     responsible for errors by author
                 - string *error_domain(string) - returns array of users
                     responsible for errors by domain
+                - string *get_groups(string) - returns all groups for suplied user
     - tmpd (needed for master functionality!)
         - needed functions for
             - master
@@ -44,12 +45,6 @@
 1. player object
     - needed functions for
         - master
-            - bool is_elder(void)
-            - bool is_wiz(void)
-            - bool is_lord(string)
-            - bool is_arch(void)
-            - bool is_admin(void)
-            - string *get_groups(void)
             - string query_uid(void)
             - int get_ed_setup(void)
             - int set_ed_setup(void)

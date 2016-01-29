@@ -45,7 +45,7 @@ public void event_destruct(void)
     if(origin() != ORIGIN_EFUN)
         return;
 }
-// }}}
+
 public void event_shutdown(void)
 {
     if(origin() != ORIGIN_EFUN)

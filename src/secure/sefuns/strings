@@ -97,7 +97,7 @@ public string remove_article(string text)
 /// @Param indent
 /// @Returns 
 // --------------------------------------------------------------------------
-public string i_wrap(string text, int width = 80, int indent = 4)
+public string i_wrap(string text, int width = DFLT_SCR_WIDTH, int indent = DFLT_SCR_INDENT)
 {
     return sprintf("%s%-=*s\n", text[0..(indent-1)], width, text[indent..]);
 }
