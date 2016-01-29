@@ -15,7 +15,7 @@
 #define __SAVE_EXT          ".sav"                      // same as SAVE_EXTENSION from driver local_options.h
 #define __SAVE_GZ_EXT       ".sav.gz"                   // same as SAVE_GZ_EXTENSION from driver local_options.h
 
-#define __ADMIN_EMAIL       "<your@example.org>"        // admin contact in RL
+#define __ADMIN_EMAIL       "<you@example.org>"         // admin contact in RL
 #define __LANGUAGE          "English"                   // everything else might be difficult to setup (parser!)
 #define __LOCATION          "Germany"
 
