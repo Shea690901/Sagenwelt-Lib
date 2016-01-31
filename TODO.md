@@ -63,3 +63,19 @@
 1. documentation for driver support headers (/include/driver/*)
 1. master
     - /var/cfg/*.acl need to be completed
+1. telnet protocol
+    read up what those do and decide if we support them (driver support is
+    present!)
+    - mxp \[Mud eXtension Protocol\] (probably yes)
+        - applies: mxp\_enable, mxp\_tag
+        - efuns  : int has\_mxp(object=TO), void act\_mxp(void)
+    - gmcp (code states **yawn** ???)
+        - applies: gmcp\_enable, gmcp
+        - efuns  : int has\_gmcp(object=TO), void send\_gmcp(string)
+    - zmp \[Zenith Mud Protocol\] (http://zmp.sourcemud.org)
+        - applies: zmp\_command
+        - efuns  : int has\_zmp(object=TO), void send\_zmp(string, string*)
+1. user shell
+    - set command
+        - set env var=val
+        - set email address
