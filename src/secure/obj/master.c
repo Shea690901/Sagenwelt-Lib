@@ -89,55 +89,6 @@ private mapping acl_read,               ///< acls for file read access
 /// where assigned privileges is a bitfield (string)
 private mapping privileges;
 
-// std applies
-private void create()
-{
-#ifdef __HAS_RUSAGE__
-    mapping before,         ///< rusage before running create
-            after;          ///< rusage after running create
-
-    before = rusage();
-
-    startup_info = allocate(5);
-#else
-    startup_info = allocate(3);
-#endif
-
-    // we use the efun directly, it's faster
-    efun::seteuid(creator_file(__MASTER_FILE__));
-
-    startup_info[0] =           // # to be preloaded objects
-    startup_info[1] =           // # how often preload called
-    startup_info[2] = 0;        // # how many errors
-
-    restore_object(MASTER_SAVE);
-    if(!acl_read)
-        acl_read   = init_acl("r");
-    if(!acl_write)
-        acl_write  = init_acl("w");
-    if(!privileges)
-        privileges = init_privileges();
-
-#ifdef __HAS_RUSAGE__
-    after = rusage();
-    if(sizeof(before) && sizeof(after))
-    {
-        startup_info[3] = after["utime"] - before["utime"]
-        startup_info[4] = after["stime"] - before["stime"]
-    }
-#endif
-}
-
-private int clean_up(int arg)
-{
-    return 0;
-}
-
-private void reset()
-{
-    save_object(MASTER_SAVE);
-}
-
 // helper functions
 // --------------------------------------------------------------------------
 /// @brief save_master
@@ -411,6 +362,18 @@ private void startup_summary(void)
 
     // now the mudlib is up and running, tell the simul_efuns so...
     done_startup();
+}
+
+// parse_info_refresh {{{
+// --------------------------------------------------------------------------
+/// @brief parse_info_refresh
+/// called from login and connection object whenever the contents of
+/// efun::users changes
+/// @Returns
+// --------------------------------------------------------------------------
+public void parse_info_refresh(void)
+{
+    parse_refresh();
 }
 
 // master applies
@@ -1022,10 +985,7 @@ private int valid_seteuid(object ob, string t_euid)
     // interactives may change their current group to any they are a member of
     if(ob == TI())
     {
-        // let new players become themselves
-        if(uid[0] == NEW_PLAYER_UID)
-            return (ob->get_name() == t_euids[0]) && (t_euids[1] == PLAYER_DOMAIN);
-        else if(uids[0] == t_euids[0])
+        if(uids[0] == t_euids[0])
         {
             string *grps = MUD_INFO_D->get_groups(uids[0]);
             if(member_array(t_euids[1], grps) != -1)
@@ -1194,35 +1154,33 @@ private object connect(int port)
     string  err;
     object  l_ob;
 
-    // port specific initialization (if any)
     switch(port)
     {
         case __MUD_PORT__:
-            break;
+            // try to create a new login object
+            if(err = catch(l_ob = new(LOGIN_OB)))
+            {
+                // in case of error:
+                // give the user a feed back
+                write("Got error: '" + err + "'\n");
+
+                // destroy any created object
+                if(l_ob)
+                    destruct(l_ob);
+
+                // tell the driver to terminate the connection
+                return 0;
+            }
+            else
+                l_ob->set_port(port);
+
+            // give the driver the object this connection should be associated with
+            return l_ob;
         default:
             debug_message(sprintf("This shouldn't have happened!\nGot portnr.: %05d\n", port));
             return 0;
     }
 
-    // try to create a new login object
-    if(err = catch(l_ob = new(LOGIN_OB)))
-    {
-        // in case of error:
-        // give the user a feed back
-        write("Got error: '" + err + "'\n");
-
-        // destroy any created object
-        if(l_ob)
-            destruct(l_ob);
-
-        // tell the driver to terminate the connection
-        return 0;
-    }
-    else
-        l_ob->set_port(port);
-
-    // give the driver the object this connection should be associated with
-    return l_ob;
 }
 // --------------------------------------------------------------------------
 /// @brief get_mud_stats
@@ -1343,7 +1301,7 @@ private void log_error(string file, string message)
         level = LOG_WARN;
     else
         level = LOG_ERR;
-    m_syslog(author_file(file), dlmain_file(file), LOG_USER|level, "(%s): %s", file, message);
+    m_syslog(author_file(file), domain_file(file), LOG_USER|level, "(%s): %s", file, message);
 }
 ///  @}
 
@@ -1577,14 +1535,15 @@ private string *get_include_path(string file)
     switch(path[1])
     {
         case "secure":
-            return ({ ".", "/secure/include" });
+            return ({ "/secure/include" });
             break;
         case "players":
             // ""/"players"/"w"/"wiz"/"file.c"
             // 0  1         2   3     4
             return ({ ".",
                       "/players/" + path[2] + "/" + path[3] + "/include",
-                      "/std/include" });
+                      "/std/include",
+                      "/secure/include" });
             break;
         case "Domains":
             // ""/"Domains"/"Example"/"members"/"wiz"/"file.c"
@@ -1593,14 +1552,15 @@ private string *get_include_path(string file)
                 return ({ ".",
                           "/Domains/" + path[2] + "/members/" + path[4] + "/include",
                           "/Domains/" + path[2] + "/include",
-                          "/std/include" });
+                          "/std/include",
+                          "/secure/include" });
             else
-                return ({ ".",
-                          "/Domains/" + path[2] + "/include",
-                          "/std/include" });
+                return ({ "/Domains/" + path[2] + "/include",
+                          "/std/include",
+                          "/secure/include" });
                 break;
     }
-    return ({ "/std/include" });
+    return ({ "/std/include", "/secure/include" });
 }
 // --------------------------------------------------------------------------
 /// @brief object_name
@@ -1651,6 +1611,55 @@ private int save_ed_setup(object user, int config)
     return user->set_ed_setup(config);
 }
 ///  @}
+
+// std applies
+private void create()
+{
+#ifdef __HAS_RUSAGE__
+    mapping before,         ///< rusage before running create
+            after;          ///< rusage after running create
+
+    before = rusage();
+
+    startup_info = allocate(5);
+#else
+    startup_info = allocate(3);
+#endif
+
+    // we use the efun directly, it's faster
+    efun::seteuid(creator_file(__MASTER_FILE__));
+
+    startup_info[0] =           // # to be preloaded objects
+    startup_info[1] =           // # how often preload called
+    startup_info[2] = 0;        // # how many errors
+
+    restore_object(MASTER_SAVE);
+    if(!acl_read)
+        acl_read   = init_acl("r");
+    if(!acl_write)
+        acl_write  = init_acl("w");
+    if(!privileges)
+        privileges = init_privileges();
+
+#ifdef __HAS_RUSAGE__
+    after = rusage();
+    if(sizeof(before) && sizeof(after))
+    {
+        startup_info[3] = after["utime"] - before["utime"]
+        startup_info[4] = after["stime"] - before["stime"]
+    }
+#endif
+}
+
+private int clean_up(int arg)
+{
+    return 0;
+}
+
+private void reset()
+{
+    save_object(MASTER_SAVE);
+}
 
 // event handler
 public void event_destruct(void)
