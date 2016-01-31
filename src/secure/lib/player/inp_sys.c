@@ -138,7 +138,7 @@ private nomask void push_handler(function input_func, mixed prompt, int secure, 
 ** Handle the pushing, popping, and altering of the input handlers on the
 ** stack.
 */
-varargs nomask void modal_push(function input_func, mixed prompt, int secure, function return_to_func, int lock )
+public varargs nomask void modal_push(function input_func, mixed prompt, int secure, function return_to_func, int lock )
 {
     push_handler(input_func, prompt, secure, return_to_func, INPUT_NORMAL, lock);
 }
@@ -199,7 +199,7 @@ protected nomask void modal_recapture(void)
 ** modal_simple()
 **
 ** This function is used for very simple input handling (such as retrieving a
-** single line of input).  It is much like modal_push() but the handler with
+** single line of input).  It is much like modal_push() but the handler will
 ** automatically be popped after the first line of input is dispatched.
 **
 ** This can be used as a direct replacement for input_to().
@@ -208,7 +208,7 @@ protected nomask void modal_recapture(void)
 ** for multiple inputs, the standard push/pop is encouraged for efficiency
 ** reasons.
 */
-varargs nomask void modal_simple(function input_func, mixed prompt, int secure, int lock)
+public varargs nomask void modal_simple(function input_func, mixed prompt, int secure, int lock)
 {
     push_handler(input_func, prompt, secure, 0, INPUT_AUTO_POP, lock);
 }
@@ -220,7 +220,7 @@ varargs nomask void modal_simple(function input_func, mixed prompt, int secure, 
 ** handler when it cannot process input and would like it to return to the
 ** next handler down while still retaining control.
 */
-nomask void modal_pass(string str)
+public nomask void modal_pass(string str)
 {
     struct input_info info;
 
@@ -276,7 +276,7 @@ private nomask void dispatch_modal_input(mixed str)
         modal_recapture();
 }
 
-nomask void modal_push_char(function input_func)
+public nomask void modal_push_char(function input_func)
 {
     push_handler(input_func, 0, 1, 0, INPUT_CHAR_MODE, 0);
 }
