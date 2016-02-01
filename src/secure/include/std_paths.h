@@ -14,6 +14,7 @@
 // directories
 #define LOG_DIR         "/var/log/"                     ///< logfiles
 #define PRIV_SAVE_DIR   "/var/save/"                    ///< save-files of privileged objects
+#define PLAYER_SAVE_DIR "/var/player_save/"             ///< save-files of players
 #define CFG_DIR         "/var/cfg/"                     ///< base config files
 #define SECURE_DIR      "/secure/"                      ///< everything security relevant
 #define DAEMON_DIR      SECURE_DIR "daemons/"           ///< daemons
@@ -26,6 +27,8 @@
 // files
 #define __SAVE_FILE(x)      ((x) + __SAVE_EXT)          ///< create save file name (uncompressed)
 #define __SAVE_GZ_FILE(x)   ((x) + __SAVE_GZ_EXT)       ///< create save file name (compressed)
+/// create save file name for given player
+#define __PLAYER_SAVE(x)    __SAVE_FILE(PLAYER_SAVE_DIR  x[0..0] "/" x)
 
 #define PRELOADS        CFG_DIR "PRELOADS"              ///< file containing filenames to be preloaded
 
@@ -37,12 +40,13 @@
 #define MOTD            CFG_DIR "motd.txt"              ///< message of the day, displayed @ logon
 
 // library
-#define INPUT_SYSTEM    SECURE_LIB_DIR "inp_sys"        ///< module for input handling
-#define MESSAGE_SYSTEM  SECURE_LIB_DIR "messages"       ///< module for message handling
-#define SHELL_SYSTEM    SECURE_LIB_DIR "shell"          ///< module for shell handling
+#define P_INPUT         SECURE_LIB_DIR "player/inp_sys"     ///< player module for input handling
+#define P_MESSAGE       SECURE_LIB_DIR "player/messages"    ///< player module for message handling
+#define P_SHELL         SECURE_LIB_DIR "player/shell"       ///< player module for shell handling
 
 // objects
-#define LOGIN_OB        SECURE_OBJ_DIR "login"          ///< login object
+#define LOGIN_OB        SECURE_OBJ_DIR "player/login"       ///< login object
+#define PLAYER_OB       SECURE_OBJ_DIR "player/player"      ///< player object
 
 // daemons
 #define MUD_INFO_D      DAEMON_DIR "mud_info"           ///< mud infos

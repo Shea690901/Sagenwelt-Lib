@@ -21,8 +21,7 @@
 */
 
 #include <driver/function.h>
-
-void    start_shell();
+#include <player/shell.h>
 
 #define INPUT_NORMAL    0
 #define INPUT_AUTO_POP  1

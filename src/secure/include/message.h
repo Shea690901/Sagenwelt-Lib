@@ -9,12 +9,12 @@
 #ifndef __SEC_MESSAGE_H
 #define __SEC_MESSAGE_H
 
-// message classes (numbers > 31 reserved for flags){{{
+// message classes (numbers > 31 reserved for flags) {{{
 #define MSGCLASS_SYSTEM     0           // system messages (e.g. shutdown imminent)
-#define MSGCLASS_L9GON      1           // logon messages (internal for logon process)
-#define MSGCLASS_ERROR      2           // error messages (master::error_handler)
+#define MSGCLASS_ERROR      1           // error messages (master::error_handler)
 
 #define MSGCLASS_MASK      31
+#define MSG_FLAG_MASK     ~31
 
 // message flags, can be set by binary or ('|') with a message class {{{
 #define MSG_WRAP           32

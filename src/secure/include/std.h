@@ -12,6 +12,8 @@
 #include <config.h>
 #include <driver/runtime_config.h>
 
+#define     __LIB_VERSION   "0.0.0"
+
 // standard booleans
 #define     FALSE           0
 #define     TRUE            1

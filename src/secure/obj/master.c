@@ -821,12 +821,21 @@ private int valid_object(object ob)
     else if(strsrch(file, "/.") != -1)
         ret = FALSE;
 
-    // everything from /secure and it's subdirs may be loaded(!)...
+    // special consideration for /secure/*
     else if(file[0..7] == "/secure/")
     {
-        // the LOGIN_OB might be cloned!
-        if(clone && (file != LOGIN_OB))
-            ret = FALSE;
+        switch(file)
+        {
+            // some may be cloned
+            case LOGIN_OB:
+            case PLAYER_OB:
+                ret = TRUE;
+                break;
+            // most 'only' loaded
+            default:
+                ret = !clone;
+                break;
+        }
     }
 
     // world writeable dirs are forbidden

@@ -14,8 +14,8 @@
 ** 16-Jan-29 Gwenhwyvar:  Modified for Sagenwelt
 */
 
-void    force_me(string what);
-void    update_translations(void);
+#include <player/inp_sys.h>
+#include <player/messages.h>
 
 // The actuall shell object we're using
 nosave private object shell_ob;

@@ -8,13 +8,14 @@
 /// @History
 /// 16-Jan-29 Gwenhwyvar:  heavyly modified for Sagenwelt
 
+#include <player/shell.h>
+
 /* %^RESET%^ gets used early in the login sequence by message */
 private nosave mapping translations    = (["RESET" : ""]);
 private nosave string  receive_classes;
 private        mapping colours;
 
 void   save_me(void);
-object query_shell_ob(void);
 mixed  get_env(string);
 
 public nomask void update_translations(void)
