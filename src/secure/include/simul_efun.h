@@ -55,6 +55,20 @@ public varargs  void     destruct(object ob);
 public          string   file_name(object who = 0, int flag = 0);
 public          object   simul_efun(void);
 // }}}
+// regex_globbing {{{
+public          int      fnmatch(string name, string pattern);
+public          string  *glob(mixed pathname);
+public          string   gsub(string s, string pat, string repl);
+public          int      has_magic(string s);
+public          string   insensitive_pattern(string pat = "");
+public          string  *insensitive_regexp(string* arr, string pat, int flag = 0);
+public          string   reg_pat_translate(string pat, int flag = 0);
+public          string  *regexplode(string str, string pat);
+public          int      rsearch(string s, string pat);
+public          int      search(string s, string pat);
+public          string  *split(string str, string pattern);
+public          string   sub(string s, string pat, string repl);
+// }}}
 // room {{{
 public          string   opposite_dir(string str, int article = 0);
 // }}}
