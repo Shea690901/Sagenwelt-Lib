@@ -111,4 +111,52 @@ public string i_wrap(string text, int width = 80, int indent = 4)
     return sprintf("%s%-=*s\n", text[0..(indent-1)], width, text[indent..]);
 }
 // }}}
+// more {{{
+// --------------------------------------------------------------------------
+/// @brief more 
+///
+/// prints a collection of lines, each not longer than screen width, given as
+/// either an array of strings or as single string with '\n' embeded, in
+/// chunks of maximal height lines, where the last line is reserved for a
+/// continuation prompt
+/// @Param arg    - string|string* lines to be printed
+/// @Param height - int screen height
+/// @Param input  - internal use only
+/// @Returns 
+// --------------------------------------------------------------------------
+public void more(mixed arg, int height = DFLT_SCR_HEIGHT, string input = "")
+{
+    int sz;
+
+    // quit?
+    if(input == "q")
+        return;
+
+    // prepare/check argument
+    if(stringp(arg))
+        arg = explode(arg, "\n");
+    if(!pointerp(arg))
+        error(sprintf("wrong argument type %s to more, expecting string|string*", gettype(arg)));
+
+    // write at most sz lines
+    sz = sizeof(arg);
+    for(int i = 0; i < sz;)
+    {
+        write(arg[i++] + "\n");
+
+        // maximum screen height reached (one line reserved for prompt)
+        if(i == height - 1)
+        {
+            // show prompt
+            write("'q' to quit, any other key to continue...");
+
+            // cut of what is already written
+            arg = arg[i..];
+            // and ask once for a single character
+            TP()->modal_push_char((: more, arg, height :), INPUT_AUTO_POP);
+            return;
+        }
+    }
+}
+//}}}
 ///  @}
