@@ -21,11 +21,8 @@
 */
 
 #include <driver/function.h>
+#include <player/inp_sys.h>
 #include <player/shell.h>
-
-#define INPUT_NORMAL    0
-#define INPUT_AUTO_POP  1
-#define INPUT_CHAR_MODE 2
 
 struct input_info
 {
@@ -51,7 +48,7 @@ private nomask int create_handler()
     {
         receive("Sorry, but I can't process your typing for some reason.\n"
                 "Please log in and try again or send mail to " __ADMIN_EMAIL
-                "\n" "if you continue to have problems.\n");
+                "\nif you continue to have problems.\n");
         destruct(TO());
         return FALSE;
     }
@@ -123,7 +120,7 @@ private nomask void push_handler(function input_func, mixed prompt, int secure, 
 
     modal_stack += ({ info });
 
-    if(info->input_type == INPUT_CHAR_MODE)
+    if(info->input_type & INPUT_CHAR_MODE)
         efun::get_char((: dispatch_modal_input :), info->secure | 2);
     else
         efun::input_to((: dispatch_modal_input :), info->secure | 2);
@@ -182,13 +179,13 @@ protected nomask void modal_recapture(void)
         return;
 
     /* char handlers don't have prompts */
-    if(info->input_type != INPUT_CHAR_MODE && info->prompt)
+    if(!(info->input_type & INPUT_CHAR_MODE) && info->prompt)
     {
         prompt = evaluate(info->prompt);
         if(prompt)
             write(prompt);
     }
-    if(info->input_type == INPUT_CHAR_MODE)
+    if(info->input_type & INPUT_CHAR_MODE)
         efun::get_char((: dispatch_modal_input :), info->secure | 2);
     else
         efun::input_to((: dispatch_modal_input :), info->secure | 2);
@@ -264,7 +261,7 @@ private nomask void dispatch_modal_input(mixed str)
             return;
 
         /* auto-pop _before_ dispatching, so we pop the correct handler */
-        if(info->input_type == INPUT_AUTO_POP)
+        if(info->input_type & INPUT_AUTO_POP)
             modal_pop();
 
         dispatching_to = sizeof(modal_stack);
@@ -275,9 +272,9 @@ private nomask void dispatch_modal_input(mixed str)
         modal_recapture();
 }
 
-public nomask void modal_push_char(function input_func)
+public nomask void modal_push_char(function input_func, int type = 0)
 {
-    push_handler(input_func, 0, 1, 0, INPUT_CHAR_MODE, 0);
+    push_handler(input_func, 0, 1, 0, INPUT_CHAR_MODE|type, 0);
 }
 
 
