@@ -1,7 +1,7 @@
 /// @file login.c
 /// @brief primary connection object
 /// @author Gwenhwyvar
-/// @version 0.1.0
+/// @version 0.2.0
 /// @date 2016-01-27
 
 #include <pragmas.h>
@@ -12,6 +12,7 @@ inherit P_MESSAGE;
 inherit P_SHELL;
 
 private mapping env;
+private object  np_menu;
 
 // states for login_handler {{{
 #define TIMEOUT     0
@@ -50,26 +51,40 @@ public mixed set_env(string var, mixed val)
 // save? during login??
 public void save_me(void) {}
 // }}}
+// quit {{{
+public void quit(void)
+{
+    object po = PO();
+
+    // master (master::crash) or new ppayer menu can force us to log out
+    if((po == master()) || (po == np_menu))
+        destruct();
+}
+// }}}
 // }}}
 // helper functions {{{
-// setup_connection {{{
-private void setup_connection(mapping info, mapping env)
+// setup_player {{{
+private void setup_player(mapping info)
 {
-    object  conn = new(PLAYER_OB);
+    object  player = new(PLAYER_OB);
 
-    // everything gathered...
+    // we don't need a timeout any more...
+    // either we're in the game in a moment or we've got some problems and are
+    // out of it...
     remove_call_out();
-    modal_pop();
 
     // init uid:gid for the new connection
-    efun::seteuid(info[MI_PI_CRED]);
-    export_uid(conn);
+    if(info[MI_PI_CRED] != "")      // existing player
+        efun::seteuid(info[MI_PI_CRED]);
+    else                            // new player
+        efun::seteuid(info[MI_PI_NAME] + ":" __PLAYER_DOMAIN__);
+    export_uid(player);
 
-    // initialize the new connection
-    if((int)conn->initialize(info, env))
+    // initialize the final connection
+    if((int)player->initialize(info, env))
     {
         // setup finished, switch connection
-        if(exec(conn, TO()))
+        if(exec(player, TO()))
         {
             // but don't forget to inform the parser ;)
             master()->parse_info_refresh();
@@ -102,8 +117,18 @@ private int check_special_commamds(string cmd)
         case "g":
         case "guest":
             // get next free guest id and setup the connection
-            p_info = (mapping)MUD_INFO_D->get_player_info(input);
-            setup_connection(p_info);
+            p_info = (mapping)MUD_INFO_D->get_player_info("guest");
+            setup_player(p_info);
+            return 0;
+        case "n":
+        case "new":
+            // new player? we need a little more time
+            remove_call_out();
+
+            // start the new player menu
+            np_menu = new(NP_MENU);
+            efun::move_object(np_menu, TO());       // makes the menu easier to code ;)
+            np_menu->start_menu(player_info, (: setup_player :);
             return 0;
         case "":
         case "q":
@@ -162,7 +187,8 @@ private void login_handler(int state, mixed extra, string input)
                 buf += "MSSP-info available via login as " MSSP_USER "\n\n";
                 buf += "You may either [q]uit your connection...\n";
                 buf += "Login as a [g]uest...\n";
-                buf += "Or login using either your (desired) character name or your email-address.\n\n";
+                buf += "Create a [n]ew character...\n";
+                buf += "Or login using either your character name or your registered email-address.\n\n";
 
                 write(buf);
 
@@ -247,7 +273,7 @@ private void login_handler(int state, mixed extra, string input)
                 if(crypt(input, pwd) == pwd)
                 {
                     write("\nPassword OK...\nSetting up character...\n");
-                    setup_connection(extra);
+                    setup_player(extra);
                     return;
                 }
                 // Password not ok...
@@ -263,35 +289,6 @@ private void login_handler(int state, mixed extra, string input)
                     destruct();
                     return;
                 }
-            }
-            break;
-        case CONFIRM_NEW:
-            {
-                // make sure arg contains only lower case characters and neither begins
-                // nor ends with whitespace
-                if(!input)
-                    input = "";
-                else
-                    input = lower_case(trim(input));
-                switch(input)
-                {
-                    // well...
-                    case "q": case "quit":
-                        write("See you later...\n");
-                        destruct();
-                        return;
-                    // yep, we have a new player...
-                    // first we need a password...
-                    case "y": case "yes":
-                        setup_connection(extra);
-                        return;
-                    // apparently not correct, try again
-                    default:
-                        write("Please try again with the correct name...\n");
-                        modal_func((: login_handler, GET_NAME, 0 :), LOGIN_PROMPT);
-                        return;
-                }
-                return;
             }
             break;
     }
