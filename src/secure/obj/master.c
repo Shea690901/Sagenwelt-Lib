@@ -805,10 +805,11 @@ private int valid_link(string from, string to)
 // --------------------------------------------------------------------------
 private int valid_object(object ob)
 {
-    string file;
-    int    clone,
-           ret = TRUE;
-    object po = PO();
+    string  file;
+    int     clone,
+            ret = TRUE;
+    object  po = PO();
+    object *anc;
 
     file  = file_name(ob, 1);
     clone = clonep(ob);
@@ -842,11 +843,17 @@ private int valid_object(object ob)
     else if((file[0..4] == "/tmp") || (file[0..8] == "/var/tmp"))
         ret = FALSE;
 
+    // input handling objects aren't allowed to be standard objects or rooms
+    else if((member_array(M_INPUT, anc = deep_inherit_list(po)) != -1) &&
+            ((member_array(STD_OBJECT, anc) != -1) ||
+             (member_array(ROOM, anc) != -1)))
+        ret = FALSE;
+
     // everything passed?
     if(ret)
         return TRUE;
 
-    // everything else fails
+    // apparently not
     syslog(LOG_AUTH|LOG_ERR,
             "Privilege violation: valid_object(%O) by %O[%s]",
             ob, po, efun::geteuid(po));
@@ -897,11 +904,22 @@ private int valid_override(string file, string efun_name, string mainfile)
     // we don't have an object yet!!!
     // only the filename from which the object is compiled...
 
+    // special cases 1
+    // these are disallowed even for '/secure/*' as long as they aren't
+    // contained in a special file
+    switch(efun_name)
+    {
+        "move_object":
+            return file == MOVE;
+    }
+
     // everything within "/secure" or with correct privilege is allowed
     if((mainfile[0..6] == "/secure") || test_bit(privs_file(mainfile), PRIV_OVERRIDE))
         return TRUE;
 
-    // special cases
+    // special cases 2
+    // these are allowed even without special privilege as long as they are
+    // contained in a special file
     switch(efun_name)
     {
         case "get_char":
@@ -1189,7 +1207,6 @@ private object connect(int port)
             debug_message(sprintf("This shouldn't have happened!\nGot portnr.: %05d\n", port));
             return 0;
     }
-
 }
 // --------------------------------------------------------------------------
 /// @brief get_mud_stats

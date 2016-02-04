@@ -56,6 +56,7 @@ public          string   author_of(string file);
 public          string   domain_of(string file);
 public varargs  void     destruct(object ob);
 public          string   file_name(object who = 0, int flag = 0);
+public varargs  int      move_object(object ob1, object ob2);
 public          object   simul_efun(void);
 // regex_globbing
 public          int      fnmatch(string name, string pattern);

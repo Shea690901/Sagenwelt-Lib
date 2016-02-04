@@ -255,4 +255,18 @@ public varargs void destruct(object ob)
 }
 
 // }}}
+// move_object {{{
+// --------------------------------------------------------------------------
+/// @brief move_object 
+///
+/// override for efun::move_object
+/// @Param ob
+/// @Returns 
+// --------------------------------------------------------------------------
+public varargs int move_object(object ob1, object ob2)
+{
+    error("illegal call to efun::move_object, use move() instead");
+}
+
+// }}}
 ///  @}
