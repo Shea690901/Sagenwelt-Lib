@@ -1,5 +1,9 @@
 /// @file m_input.c
 /// @brief helper for input system
+///
+/// Most functions here are wrappers for the functions of the input system
+/// with the same name.  First registering the calling user as the one
+/// 'owning' the object using this module or unregistering after the call.
 /// @author Deathblade
 /// @version 0.0.0
 /// @date 2016-02-02
@@ -26,56 +30,91 @@
 ** 16-Feb-02, Gwenhwyvar: changed for Sagenwelt
 */
 
+inherit MOVE;       // every object that requires some input has to create a
+                    // special object handling the actual input which has to
+                    // be movable into the player object itself! this eases
+                    // the handling of net dead players
+
 private nosave object input_user;
+private nosave int    sz;
 
 protected varargs nomask void modal_push(function input_func, mixed prompt_func, function secure, function return_to_func)
 {
-    object t = this_user();
+    object t = TP();
 
-    if(input_user && (t != input_user))
-        error("user mismatch -- already assigned to a user\n");
+    if(input_user)
+    {
+        if(environment() != t)
+            error("user mismatch -- already assigned to a user");
+    }
+    else
+        move(input_user = t);
 
-    input_user = t;
+    sz++;
     input_user->modal_push(input_func, prompt_func, secure, return_to_func);
 }
 
 protected nomask void modal_push_char(function callback, int type)
 {
-    object t = this_user();
+    object t = TP();
 
-    if(!(type & INPUT_AUTOPOP))
+    if(input_user)
     {
-        if(input_user && (t != input_user))
-            error("user mismatch -- already assigned to a user\n");
-
-        input_user = t;
+        if(environment() != t)
+            error("user mismatch -- already assigned to a user");
     }
-    t->modal_push_char(callback, type);
+    else
+        move(input_user = t);
+    if(!(type & INPUT_AUTOPOP))
+        sz++;
+    input_user->modal_push_char(callback, type);
 }
 
 protected nomask void modal_pop()
 {
+    if(!sz)
+        error("pop without push");
+
+    sz--;
     input_user->modal_pop();
-    input_user = 0;
+
+    if(!sz)
+        input_user = 0;
 }
 
 protected varargs nomask void modal_func(function input_func, mixed prompt_func, int secure)
 {
+    if(!input_user)
+        error("not registered for any user");
     input_user->modal_func(input_func, prompt_func, secure);
 }
 
 protected varargs nomask void modal_simple(function input_func, mixed prompt, int secure)
 {
-    this_user()->modal_simple(input_func, prompt, secure);
+    object t = TP();
+
+    if(input_user)
+    {
+        if(environment() != t)
+            error("user mismatch -- already assigned to a user");
+    }
+    else
+        move(input_user = t);
+
+    input_user->modal_simple(input_func, prompt, secure);
 }
 
 protected nomask void modal_pass(string str)
 {
+    if(!input_user)
+        error("not registered for any user");
     input_user->modal_pass(str);
 }
 
 protected nomask int modal_stack_size()
 {
+    if(!input_user)
+        error("not registered for any user");
     return input_user->modal_stack_size();
 }
 
@@ -178,4 +217,9 @@ protected varargs nomask void input_three_args(string arg1_prompt, string arg2_p
     // 0 Args
     else
         modal_simple((: rcv_second_of_three, arg2_prompt, arg3_prompt, fp :), arg1_prompt);
+}
+
+protected void create(void)
+{
+    sz = 0;
 }
