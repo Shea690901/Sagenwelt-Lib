@@ -80,7 +80,7 @@ public varargs mapping unique_mapping(mixed *arr, mixed sep, mixed skip)
         {
             mixed val;
 
-            val = (*sep)(elem);
+            val = evalute(sep, elem);
             if(!st && (val == skip))
                 continue;
             if(!ret[val])

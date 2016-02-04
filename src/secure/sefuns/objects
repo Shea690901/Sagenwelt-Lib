@@ -186,7 +186,7 @@ public string author_of(string file)
 
     ret = match_path(authors, file);
     if(functionp(ret))
-        ret = (*ret)(file);
+        ret = evaluate(ret, file);
     if(stringp(ret) && sizeof(ret))
         return ret;
     else
@@ -205,7 +205,7 @@ public string domain_of(string file)
 
     ret = match_path(authors, file);
     if(functionp(ret))
-        ret = (*ret)(file);
+        ret = evaluate(ret, file);
     if(stringp(ret) && sizeof(ret))
         return ret;
     else

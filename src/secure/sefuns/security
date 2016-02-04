@@ -55,7 +55,7 @@ public int setegid(string egid)
     function    f = bind( (: efun::seteuid :), who);
     string    arg = geteuid(who) + ":" + egid;
 
-    return (*f)(arg);
+    return evalute(f, arg);
 }
 // }}}
 // getuid {{{
@@ -107,7 +107,7 @@ public int seteuid(string euid)
     function    f = bind( (: efun::seteuid :), who);
     string    arg = euid + ":" + getegid(who);;
 
-    return (*f)(arg);
+    return evalute(f, arg);
 }
 // }}}
 // init_eids {{{
@@ -123,7 +123,7 @@ public int init_eteids(void)
     object   who = TO();
     function   f = bind( (: efun::seteuid :), who);
 
-    return (*f)(efun::getuid(who));
+    return evalute(f, efun::getuid(who));
 }
 // }}}
 
