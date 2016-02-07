@@ -33,6 +33,7 @@
 # Generated files
 #bin/   <- has it's own .gitignore added
 gen/
+tags
 
 # Gradle files
 .gradle/
