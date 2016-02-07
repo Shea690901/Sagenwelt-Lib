@@ -537,18 +537,20 @@ private string *epilog(int dummy)
                     seen[line] += 1;
             }
         }
+    }
 
-        startup_info[0] = sizeof(ret);            // preload needs to know when to print summary
+    startup_info[0] = sizeof(ret);            // preload needs to know when to print summary
 
 #ifdef __HAS_RUSAGE__
-        after = rusage();
-        if(sizeof(before) && sizeof(after))
-        {
-            startup_info[3] = after["utime"] - before["utime"]
+    after = rusage();
+    if(sizeof(before) && sizeof(after))
+    {
+        startup_info[3] = after["utime"] - before["utime"]
             startup_info[4] = after["stime"] - before["stime"]
-        }
+    }
 #endif
 
+    // nothing to preload
     if(!startup_info[0])
         startup_summary();
 
