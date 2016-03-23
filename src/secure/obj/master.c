@@ -108,7 +108,7 @@ private void save_master(void)
         syslog(LOG_KERN|LOG_EMERG, "master::save_master: can't save save file!");
         efun::shutdown(-1);
     }
-    else if(!save_obiect(MASTER_SAVE))  // save current values
+    else if(!save_object(MASTER_SAVE))  // save current values
     {
         // panic! couldn't save...
         syslog(LOG_KERN|LOG_EMERG, "master::save_master: can't save master!");
@@ -352,7 +352,7 @@ private void startup_summary(void)
             "# of successful loads : %:03d\n" +
             "# of errors           : %:03d\n",
             startup_info[0], startup_info[1] - startup_info[2], startup_info[2]);
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     out += sprintf("%:'-'80s\nStartup Time:\n", "-");
     out += sprintf("  user time: %:6d\nsystem time: %:6d\n",
             startup_info[3], startup_info[4]);
@@ -392,7 +392,7 @@ public void parse_info_refresh(void)
 // --------------------------------------------------------------------------
 private void flag(string driver_flag)
 {
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     mapping before,         ///< rusage before loading object
             after;          ///< rusage after loading object
 
@@ -407,7 +407,7 @@ private void flag(string driver_flag)
             error(sprintf("Unknown driver-flag '%s'…", driver_flag));
             break;
     }
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
@@ -433,7 +433,7 @@ private string *epilog(int dummy)
     string   content,
             *ret;
     mapping  seen;
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     mapping  before,         ///< rusage before loading object
              after;          ///< rusage after loading object
 
@@ -485,7 +485,7 @@ private string *epilog(int dummy)
 
     startup_info[0] = sizeof(ret);            // preload needs to know when to print summary
 
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
@@ -514,7 +514,7 @@ private string *epilog(int dummy)
 private void preload(string str)
 {
     string  err;            ///< error while loading object
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     mapping before,         ///< rusage before loading object
             after;          ///< rusage after loading object
     int     t;
@@ -535,7 +535,7 @@ private void preload(string str)
     else
         // or loads fine...
         debug_message("Done!...");
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
@@ -1641,7 +1641,7 @@ private int save_ed_setup(object user, int config)
 // std applies
 private void create()
 {
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     mapping before,         ///< rusage before running create
             after;          ///< rusage after running create
 
@@ -1667,7 +1667,7 @@ private void create()
     if(!privileges)
         privileges = init_privileges();
 
-#ifdef __HAS_RUSAGE__
+#ifdef HAS_RUSAGE
     after = rusage();
     if(sizeof(before) && sizeof(after))
     {
