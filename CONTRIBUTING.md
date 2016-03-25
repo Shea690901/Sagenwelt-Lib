@@ -58,9 +58,9 @@ footer-text
     * **docs**: Documentation only changes
     * **style**: Changes that do not affect the meaning of the code
     (white-space, formatting, missing semi-colons, etc)
-    * **refactor**: A code change that neither fixes a bug or adds a feature
+    * **ref**: A code change that neither fixes a bug or adds a feature
     * **test**: Adding missing tests
-    * **chore**: Changes to the build process or auxiliary tools and libraries
+    * **core**: Changes to the build process or auxiliary tools and libraries
     such as documentation generation
 + scope denotes the location of change and can be omitted if for some valid
 reason it is too wide spread.
@@ -131,7 +131,7 @@ bug.
 - master is for releases only. A new release will be marked by an apropriate
   tag.
 - devel is the main development branch. This is the branch you want to base
-  your ceature-branch on.
+  your feature-branch on.
 - other branches as the keep coming and going...
 
 ## Coding standards
@@ -144,7 +144,10 @@ bug.
   [doxygen](https://github.com/doxygen/doxygen) all needed documentation
   resides within the code itself. Please keep it this way and document
   everything.
-- use `// {{{` `// }}}` pairs as appropriate. For examples see existing code.
+- For those coders using vim a syntaxfile, an improvement of the one shipped
+  with vim itself, is supplied within the contrib directory.
+  Should you add some sefun please update this file too, even if you don't use
+  vim yourself...
 
 ## License
 
