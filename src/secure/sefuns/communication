@@ -13,11 +13,11 @@
 /// wrapper using sefun::write [MSG_CLASS_SYSTEM]
 /// @Param format
 /// @Param args
-/// @Returns 
+/// @Returns -
 // --------------------------------------------------------------------------
 public void printf(string format, mixed *args...)
 {
-    write(sprintf(format, args...));
+    write(sprintf(format, args...), MSGCLASS_SYSTEM);
 }
 
 // public void say(string msg, mixed *exclude, int msg_class = MSGCLASS_SYSTEM);
@@ -30,8 +30,10 @@ public void printf(string format, mixed *args...)
 ///
 /// override for efun::write using efun::message instead
 /// optional parameter msg_class added
+/// if calling object is master or if no acting player is given
+/// (this_player() == 0) efun::write is still used!
 /// @Param msg
-/// @Param msg_class
+/// @Param msg_class - dflt: MSGCLASS_SYSTEM|MSG_WRAP
 /// @Returns 
 // --------------------------------------------------------------------------
 public void write(string msg, int msg_class = MSGCLASS_SYSTEM|MSG_WRAP)
