@@ -14,16 +14,14 @@ inherit P_SHELL;
 private mapping env;
 private object  np_menu;
 
-// states for login_handler {{{
+// states for login_handler
 #define TIMEOUT     0
 #define START       1
 #define GET_NAME    2
 #define GET_PASSWD  3
 #define CONFIRM_NEW 4
-// }}}
 
-// mud lib api {{{
-// get_env {{{
+// mud lib api
 // --------------------------------------------------------------------------
 /// @brief get_env
 /// like C-library function
@@ -34,8 +32,7 @@ public mixed get_env(string var)
 {
     return env[var];
 }
-// }}}
-// set_env {{{
+
 // --------------------------------------------------------------------------
 /// @brief set_env
 /// like C-library function
@@ -46,12 +43,10 @@ public mixed set_env(string var, mixed val)
 {
      env[var] = val;
 }
-// }}}
-// save_me {{{
+
 // save? during login??
 public void save_me(void) {}
-// }}}
-// quit {{{
+
 public void quit(void)
 {
     object po = PO();
@@ -60,10 +55,8 @@ public void quit(void)
     if((po == master()) || (po == np_menu))
         destruct();
 }
-// }}}
-// }}}
-// helper functions {{{
-// setup_player {{{
+
+// helper functions
 private void setup_player(mapping info)
 {
     object  player = new(PLAYER_OB);
@@ -97,8 +90,7 @@ private void setup_player(mapping info)
             __ADMIN_EMAIL + "\n");
     destruct();
 }
-// }}}
-// check_special_commamds {{{
+
 private int check_special_commamds(string cmd)
 {
     mapping p_info;
@@ -128,7 +120,7 @@ private int check_special_commamds(string cmd)
             // start the new player menu
             np_menu = new(NP_MENU);
             efun::move_object(np_menu, TO());       // makes the menu easier to code ;)
-            np_menu->start_menu(player_info, (: setup_player :);
+            np_menu->start_menu(player_info, (: setup_player :));
             return 0;
         case "":
         case "q":
@@ -142,8 +134,7 @@ private int check_special_commamds(string cmd)
             return 1;
     }
 }
-// }}}
-// login_handler {{{
+
 // --------------------------------------------------------------------------
 /// @brief login_handler
 ///
@@ -293,11 +284,8 @@ private void login_handler(int state, mixed extra, string input)
             break;
     }
 }
-// }}}
-// }}}
 
-// interactive applies {{{
-// catch_tell {{{
+// interactive applies
 // --------------------------------------------------------------------------
 /// @brief catch_tell
 ///
@@ -314,8 +302,7 @@ private void catch_tell(string msg)
 {
     receive(message);
 }
-// }}}
-// logon {{{
+
 // --------------------------------------------------------------------------
 /// @brief logon
 ///
@@ -327,8 +314,7 @@ private object logon(void)
 {
     login_handler(START, 0);
 }
-// }}}
-// net_dead {{{
+
 // --------------------------------------------------------------------------
 /// @brief net_dead
 ///
@@ -344,8 +330,7 @@ private void net_dead(void)
     // we don't have anything to loose
     destruct();
 }
-// }}}
-// telnet_suboption {{{
+
 // --------------------------------------------------------------------------
 /// @brief telnet_suboption
 ///
@@ -371,8 +356,7 @@ private void net_dead(void)
 private void telnet_suboption(string buffer)
 {
 }
-// }}}
-// terminal_type {{{
+
 // --------------------------------------------------------------------------
 /// @brief terminal_type
 ///
@@ -388,8 +372,7 @@ private void terminal_type(string term)
     // if we get some terminal type we may use it...
     set_env("TERM", term);
 }
-// }}}
-// window_size {{{
+
 // --------------------------------------------------------------------------
 /// @brief window_size
 ///
@@ -405,8 +388,7 @@ private void window_size(int width, int height)
     set_env("WIDTH", width);
     set_env("HEIGHT", height);
 }
-// }}}
-// receive_environ {{{
+
 // --------------------------------------------------------------------------
 /// @brief receive_environ
 ///
@@ -443,9 +425,8 @@ private void receive_environ(string env)
     }
     set_env("USER_ENV", user_env);
 }
-// }}}
-// }}}
-// std applies {{{
+
+// std applies
 private void create(void)
 {
     // we need to read files and later to change our id for export_uid
@@ -459,9 +440,8 @@ private void create(void)
     // we may receive logon messages
     add_receive_class(MSGCLASS_LOGON);
 }
-// }}}
-// event handler {{{
-// destruct {{{
+
+// event handler
 public void event_destruct(void)
 {
     if(origin() != ORIGIN_EFUN)
@@ -471,8 +451,7 @@ public void event_destruct(void)
     write("\nSorry, but someone is playing around with the login process...\nPlease try again in a few minutes...\n");
     destruct();
 }
-// }}}
-// shutdown {{{
+
 public void event_shutdown(void)
 {
     if(origin() != ORIGIN_EFUN)
@@ -482,5 +461,3 @@ public void event_shutdown(void)
     write("\nSorry, we're shutting down...\nPlease try again in a few minutes...\n");
     destruct();
 }
-// }}}
-// }}}

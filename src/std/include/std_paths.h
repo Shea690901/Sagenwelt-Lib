@@ -10,16 +10,13 @@
 // get system definitions
 #include "/secure/include/std_paths.h"
 
-// directories {{{
+// directories
 #define STD_LIB         "/std/lib/"                 ///< std library files
-// }}}
 
-// library objects {{{
+// library objects
 #define LIVING          STD_LIB "living"            ///< living object
-// }}}
 
-// objects {{{
+// objects
 #define LOGIN_OB        STD_OBS "player"            ///< standard player
-// }}}
 
 #endif // __STD_PATHS_H

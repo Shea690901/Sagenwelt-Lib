@@ -8,7 +8,6 @@
 /// @version 0.0.0
 /// @date 2016-01-29
 
-// printf {{{
 // --------------------------------------------------------------------------
 /// @brief printf 
 /// wrapper using sefun::write [MSG_CLASS_SYSTEM]
@@ -20,20 +19,12 @@ public void printf(string format, mixed *args...)
 {
     write(sprintf(format, args...));
 }
-// }}}
-// say {{{
+
 // public void say(string msg, mixed *exclude, int msg_class = MSGCLASS_SYSTEM);
-// }}}
-// shout {{{
 // public void shout(string msg, int msg_class = MSGCLASS_SYSTEM);
-// }}}
-// tell_object {{{
 // public void tell_object(object ob, string msg, int msg_class = MSGCLASS_SYSTEM);
-// }}}
-// tell_room {{{
 // public void tell_room(mixed ob, string msg, object *exclude, int msg_class = MSGCLASS_SYSTEM);
-// }}}
-// write {{{
+
 // --------------------------------------------------------------------------
 /// @brief write 
 ///
@@ -58,5 +49,4 @@ public void write(string msg, int msg_class = MSGCLASS_SYSTEM|MSG_WRAP)
     else
         message(msg_class, msg, ({ tp }), ({}));
 }
-// }}}
 ///  @}

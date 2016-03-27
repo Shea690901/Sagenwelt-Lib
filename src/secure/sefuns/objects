@@ -254,8 +254,6 @@ public varargs void destruct(object ob)
         efun::destruct(ob);
 }
 
-// }}}
-// move_object {{{
 // --------------------------------------------------------------------------
 /// @brief move_object 
 ///

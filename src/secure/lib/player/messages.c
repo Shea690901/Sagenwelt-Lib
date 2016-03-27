@@ -64,14 +64,15 @@ public nomask string *query_colours(void)
 public nomask void remove_colour(string which)
 {
     map_delete(colours, upper_case(which));
-    /* just in case */
+
+    // just in case
     map_delete(colours, lower_case(which));
     map_delete(colours, which);
     update_translations();
     save_me();
 }
 
-// add_receive_class {{{
+// add_receive_class
 // --------------------------------------------------------------------------
 /// @brief add_receive_class
 ///
@@ -86,8 +87,7 @@ public nomask void add_receive_class(int msg_class)
         receive_classes = set_bit("", MSGCLASS_SYSTEM);
     receive_classes = set_bit(receive_classes, msg_class);
 }
-/// }}}
-// remove_receive_class {{{
+
 // --------------------------------------------------------------------------
 /// @brief remove_receive_class
 ///
@@ -104,8 +104,7 @@ public nomask void remove_receive_class(int msg_class)
     if(msg_class != MSGCLASS_SYSTEM)
         receive_classes = clear_bit(receive_classes, msg_class);
 }
-/// }}}
-// receive_message {{{
+
 // --------------------------------------------------------------------------
 /// @brief receive_message
 ///
@@ -131,4 +130,3 @@ private nomask void receive_message(string msg_class, string message)
     if(test_bit(receive_classes, msg_class))
         receive(terminal_colour(msg + "%^RESET%^", translations, wrap, indent));
 }
-// }}}

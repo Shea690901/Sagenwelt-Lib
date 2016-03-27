@@ -364,7 +364,6 @@ private void startup_summary(void)
     done_startup();
 }
 
-// parse_info_refresh {{{
 // --------------------------------------------------------------------------
 /// @brief parse_info_refresh
 /// called from login and connection object whenever the contents of
