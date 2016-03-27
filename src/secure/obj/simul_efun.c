@@ -39,20 +39,16 @@ public void done_startup(void)
     startup_finished = TRUE;
 }
 
-// event handler {{{
-// destruct {{{
+// event handler
 public void event_destruct(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
 }
 // }}}
-// shutdown {{{
 public void event_shutdown(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
 }
-// }}}
-// }}}
 /// @}

@@ -25,7 +25,7 @@
 
 #define VT100_NOR           CSI+"2;37;0m"       // Puts everything back to normal
 
-// Foreground Colors {{{
+// Foreground Colors
 #define VT100_BLK           CSI+"30m"           // Black
 #define VT100_RED           CSI+"31m"           // Red
 #define VT100_GRN           CSI+"32m"           // Green
@@ -34,8 +34,7 @@
 #define VT100_MAG           CSI+"35m"           // Magenta
 #define VT100_CYN           CSI+"36m"           // Cyan
 #define VT100_WHT           CSI+"37m"           // White
-// }}}
-// High Intensity Foreground Colors {{{
+// High Intensity Foreground Colors
 #define VT100_HBLK          CSI+"1;30m"         // Black    Note: hi-black comes out as dark grey.
 #define VT100_HRED          CSI+"1;31m"         // Red
 #define VT100_HGRN          CSI+"1;32m"         // Green
@@ -44,8 +43,7 @@
 #define VT100_HMAG          CSI+"1;35m"         // Magenta
 #define VT100_HCYN          CSI+"1;36m"         // Cyan
 #define VT100_HWHT          CSI+"1;37m"         // White
-// }}}
-// Background Colors {{{
+// Background Colors
 #define VT100_BBLK          CSI+"40m"           // Black
 #define VT100_BRED          CSI+"41m"           // Red
 #define VT100_BGRN          CSI+"42m"           // Green
@@ -54,8 +52,7 @@
 #define VT100_BMAG          CSI+"45m"           // Magenta
 #define VT100_BCYN          CSI+"46m"           // Cyan
 #define VT100_BWHT          CSI+"47m"           // White
-// }}}
-// High Intensity Background Colors {{{
+// High Intensity Background Colors
 #define VT100_HBBLK         CSI+"40;1m"         // Black
 #define VT100_HBRED         CSI+"41;1m"         // Red
 #define VT100_HBGRN         CSI+"42;1m"         // Green
@@ -64,7 +61,6 @@
 #define VT100_HBMAG         CSI+"45;1m"         // Magenta
 #define VT100_HBCYN         CSI+"46;1m"         // Cyan
 #define VT100_HBWHT         CSI+"47;1m"         // White
-// }}}
 
 // Additional ansi Esc codes added to ansi.h by Gothic  april 23,1993
 // Note:

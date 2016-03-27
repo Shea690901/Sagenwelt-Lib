@@ -8,7 +8,6 @@
 
 private int debug_flag = FALSE;
 
-// set_debug {{{
 // --------------------------------------------------------------------------
 /// @brief set_debug
 /// set simul_efun internal debug_flag
@@ -23,8 +22,6 @@ public int set_debug(int val)
     debug_flag = val;
     return o_val;
 }
-// }}}
-// get_debug {{{
 // --------------------------------------------------------------------------
 /// @brief get_debug_flag
 /// @Returns current setting of debug_flag
@@ -33,9 +30,6 @@ public int get_debug(void)
 {
     return debug_flag;
 }
-
-// }}}
-// cmp {{{
 // --------------------------------------------------------------------------
 /// @brief cmp 
 /// @Param a
@@ -73,5 +67,4 @@ public int cmp(mixed a, mixed b)
     else
         return a == b;
 }
-// }}}
 ///  @}

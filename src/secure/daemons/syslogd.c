@@ -20,7 +20,6 @@ mapping         log_file_dict;  ///< dictionary: which facility from which user 
 
 private void    initialize();
 
-// std functions {{{
 void create()
 {
     init_done = FALSE;
@@ -31,7 +30,6 @@ int clean_up(int arg)
 {
     return 0;
 }
-// }}}
 
 // --------------------------------------------------------------------------
 /// @brief initialize

@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2016-01-23
 
-// global vars/forward declarations {{{
 private mapping authors_of;
 private mapping domains_of;
 
@@ -14,10 +13,9 @@ private string mud_info_d_author(string file);
 private string mud_info_d_domain(string file);
 private string tmpd_author(string file);
 private string tmpd_domain(string file);
-// }}}
 
-// helper functions {{{
-// initialize object simul efuns {{{
+// helper functions
+// initialize object simul efuns
 private void init_object_sefuns(void)
 {
     if(!authors_of)
@@ -71,9 +69,8 @@ private void init_object_sefuns(void)
                 "/tmp":             (: tmpd_domain :),
                 ]);
 }
-// }}}
 
-// ask mud_info_d for author if we're dxne with startup {{{
+// ask mud_info_d for author if we're dxne with startup
 private string mud_info_d_author(string file)
 {
     object mud_info_d;
@@ -89,7 +86,7 @@ private string mud_info_d_author(string file)
         return (string)mud_info_d->author_file(file);
 }
 // }}}
-// ask mud_info_d for domain if we're dxne with startup {{{
+// ask mud_info_d for domain if we're dxne with startup
 private string mud_info_d_domain(string file)
 {
     object mud_info_d;
@@ -105,7 +102,7 @@ private string mud_info_d_domain(string file)
         return (string)mud_info_d->domain_file(file);
 }
 // }}}
-// ask tmpd for author if we're dxne with startup {{{
+// ask tmpd for author if we're dxne with startup
 private string tmpd_author(string file)
 {
     object tmpd;
@@ -121,7 +118,7 @@ private string tmpd_author(string file)
         return (string)tmpd->author_file(file);
 }
 // }}}
-// ask tmpd for domain if we're dxne with startup {{{
+// ask tmpd for domain if we're dxne with startup
 private string tmpd_domain(string file)
 {
     object tmpd;
@@ -139,7 +136,7 @@ private string tmpd_domain(string file)
 // }}}
 // }}}
 
-// simul_efun {{{
+// simul_efun
 // --------------------------------------------------------------------------
 /// @brief simul_efun
 /// @Returns simul_efun object
@@ -149,7 +146,7 @@ public object simul_efun()
     return find_object(__SIMUL_EFUN_FILE__);
 }
 // }}}
-// file_name {{{
+// file_name
 // --------------------------------------------------------------------------
 /// @brief file_name 
 /// extended version of efun::file_name
@@ -174,7 +171,7 @@ public string file_name(object who = 0, int flag = 0)
     return fn;
 }
 // }}}
-// author_of {{{
+// author_of
 public string author_of(string file)
 {
     mixed ret;
@@ -193,7 +190,7 @@ public string author_of(string file)
         return UNKNOWN_UID;
 }
 // }}}
-// domain_of {{{
+// domain_of
 public string domain_of(string file)
 {
     mixed ret;
@@ -212,7 +209,7 @@ public string domain_of(string file)
         return UNKNOWN_DOMAIN;
 }
 // }}}
-// destruct {{{
+// destruct
 // --------------------------------------------------------------------------
 /// @brief destruct 
 ///

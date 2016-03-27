@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2016-01-24
 
-// getgid {{{
 // --------------------------------------------------------------------------
 /// @brief getgid 
 /// 
@@ -20,8 +19,6 @@ public string getgid(mixed who = 0)
 
     return explode(efun::getuid(who), ":")[1];
 }
-// }}}
-// getegid {{{
 // --------------------------------------------------------------------------
 /// @brief getegid 
 /// 
@@ -41,8 +38,6 @@ public string getegid(mixed who = 0)
     else
         return explode(ret, ":")[1];
 }
-// }}}
-// setegid {{{
 // --------------------------------------------------------------------------
 /// @brief setegid 
 /// 
@@ -57,8 +52,6 @@ public int setegid(string egid)
 
     return evalute(f, arg);
 }
-// }}}
-// getuid {{{
 // --------------------------------------------------------------------------
 /// @brief getuid 
 /// 
@@ -72,8 +65,6 @@ public string getuid(mixed who = 0)
 
     return explode(efun::getuid(who), ":")[0];
 }
-// }}}
-// geteuid {{{
 // --------------------------------------------------------------------------
 /// @brief geteuid 
 /// 
@@ -93,8 +84,6 @@ public string geteuid(mixed who = 0)
     else
         return explode(ret, ":")[0];
 }
-// }}}
-// seteuid {{{
 // --------------------------------------------------------------------------
 /// @brief seteuid 
 /// 
@@ -109,8 +98,6 @@ public int seteuid(string euid)
 
     return evalute(f, arg);
 }
-// }}}
-// init_eids {{{
 // --------------------------------------------------------------------------
 /// @brief init_eids 
 ///
@@ -125,9 +112,6 @@ public int init_eteids(void)
 
     return evalute(f, efun::getuid(who));
 }
-// }}}
-
-// playerp {{{
 // --------------------------------------------------------------------------
 /// @brief playerp 
 ///
@@ -138,8 +122,6 @@ public int playerp(object ob)
 {
     return ob == find_player(getuid(ob));
 }
-// }}}
-// elderp {{{
 // --------------------------------------------------------------------------
 /// @brief elderp 
 ///
@@ -150,8 +132,6 @@ public int elder(object ob)
 {
     return playerp(ob) && (member_array(UPRIV_ELDER, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
-// }}}
-// creatorp {{{
 // --------------------------------------------------------------------------
 /// @brief creatorp 
 ///
@@ -162,8 +142,6 @@ public int creatorp(object ob)
 {
     return playerp(ob) && (member_array(UPRIV_WIZARD, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
-// }}}
-// Dcreatorp {{{
 // --------------------------------------------------------------------------
 /// @brief Dcreatorp 
 ///
@@ -193,8 +171,6 @@ public int Dcreatorp(object ob, string domain = "@any@")
     }
     return member_array(uid, (string)MUD_INFO_D->get_domain_member(domain)) != -1;
 }
-// }}}
-// Dlordp {{{
 // --------------------------------------------------------------------------
 /// @brief Dlordp 
 ///
@@ -226,8 +202,6 @@ public int Dlordp(object ob, string domain = "@any@")
 
     return member_array(uid, (string)MUD_INFO_D->get_domain_lords(domain)) != -1;
 }
-// }}}
-// archp {{{
 // --------------------------------------------------------------------------
 /// @brief archp 
 ///
@@ -238,8 +212,6 @@ public int archp(object ob)
 {
     return creatorp(ob) && (member_array(UPRIV_ARCH, (string)MUD_INFO_D->getgroups(geteuid(ob))) != -1);
 }
-// }}}
-// adminp {{{
 // --------------------------------------------------------------------------
 /// @brief adminp 
 ///
@@ -250,5 +222,4 @@ public int adminp(object ob)
 {
     return creatorp(ob) && (member_array(UPRIV_ADMIN, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
-// }}}
 ///  @}

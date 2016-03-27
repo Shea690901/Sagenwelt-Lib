@@ -9,34 +9,30 @@
 #ifndef __SEC_STD_PATHS_H
 #define __SEC_STD_PATHS_H
 
-// directories {{{
+// directories
 #define LOG_DIR         "/var/log/"                 ///< logfiles
 #define PRIV_SAVE_DIR   "/var/save/"                ///< save-files of privileged objects
 #define CFG_DIR         "/var/cfg/"                 ///< base config files
 #define SECURE_DIR      "/secure/"                  ///< everything security relevant
 #define DAEMON_DIR      SECURE_DIR "daemons/"       ///< daemons
 #define SEFUN_DIR       SECURE_DIR "sefuns/"        ///< simul_efun-modules
-// }}}
 
-// files {{{
+// files
 #define PRELOADS        CFG_DIR "PRELOADS"          ///< file containing filenames to be preloaded
 
 #define ACL_READ_CFG    CFG_DIR "Read.acl"          ///< standard acl for read access
 #define ACL_WRITE_CFG   CFG_DIR "Write.acl"         ///< standard acl for write access
 #define PRIVS_CFG       CFG_DIR "Privs.cfg"         ///< default privs for all objects
-// }}}
 
-// objects {{{
+// objects
 #define LOGIN_OB        SECURE_DIR "login"          ///< login object
-// }}}
 
-// daemons {{{
+// daemons
 #define MUD_INFO_D      DAEMON_DIR "mud_info"       ///< mud infos
 #define SYSLOG_D        DAEMON_DIR "syslogd"        ///< logging daemon
 #define TMP_D           DAEMON_DIR "tmpd"           ///< handler for temporary files
 #define MAIL_D          DAEMKN_DIR "smtpd"          ///< mailer daemon
 #define NEWS_D          DAEMKN_DIR "newsd"          ///< news daemon
-// }}}
 
 #endif // __SEC_STD_PATHS_H
 

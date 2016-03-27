@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2015-12-13
 
-// _syslog {{{
 // --------------------------------------------------------------------------
 /// @brief _syslog 
 /// internal handler for sefun::syslog and sefun::m_syslog
@@ -98,8 +97,6 @@ private varargs void _syslog(object caller, string uid, string gid, int priority
     msg = sprintf("%s [%s]: '" + format + "'", ctime(time()), level_s, args...);
     SYSLOGD->log(caller, uid, gid, facility, msg);
 }
-// }}}
-// syslog {{{
 // --------------------------------------------------------------------------
 /// @brief syslog
 ///
@@ -124,8 +121,6 @@ public varargs void syslog(int priority, string format, mixed *args...)
     gid = getgid(who);
     _syslog(who, uid, gid, facility, format, args...);
 }
-// }}}
-// m_syslog {{{
 // --------------------------------------------------------------------------
 /// @brief syslog
 ///
@@ -149,5 +144,4 @@ public varargs void m_syslog(string uid, string gid, int priority, string format
         error("illegal call to m_syslog");
     }
 }
-// }}}
 ///  @}

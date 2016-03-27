@@ -7,7 +7,6 @@
 /// @version 0.1.0
 /// @date 2016-01-24
 
-// scramble_array {{{
 // --------------------------------------------------------------------------
 /// @brief scramble_array 
 /// @Param arr
@@ -17,8 +16,6 @@ public mixed *scramble_array(mixed *arr)
 {
     return sort_array(copy(arr), (: random(3) - 1 :) );
 }
-// }}}
-// distinct_array {{{
 // --------------------------------------------------------------------------
 /// @brief distinct_array 
 /// @Param arr
@@ -33,8 +30,6 @@ public mixed *distinct_array(mixed *arr)
         tmp[arr[i--]] = 1;
     return keys(tmp);
 }
-// }}}
-// unique_mapping {{{
 // --------------------------------------------------------------------------
 /// @brief unique_mapping 
 /// same semantic as unique_array but retains the return values of the
@@ -93,5 +88,4 @@ public varargs mapping unique_mapping(mixed *arr, mixed sep, mixed skip)
         error("wrong type of second argument to unique_mapping (got " +
                 typeof(sep) + " expected string|function)");
 }
-// }}}
 ///  @}

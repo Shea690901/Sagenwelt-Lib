@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2016-01-26
 
-// reset_eval_cost {{{
 // --------------------------------------------------------------------------
 /// @brief reset_eval_cost 
 ///
@@ -30,8 +29,6 @@ public void reset_eval_cost(void)
     }
     efun::reset_eval_cost();
 }
-// }}}
-// set_eval_limit {{{
 // --------------------------------------------------------------------------
 /// @brief set_eval_limit 
 ///
@@ -55,8 +52,6 @@ public void set_eval_limit(int limit)
     }
     efun::set_eval_limit(limit);
 }
-// }}}
-// debug_info {{{
 // --------------------------------------------------------------------------
 /// @brief debug_info 
 ///
@@ -80,8 +75,6 @@ public varargs mixed debug_info(int req, mixed *args...)
     }
     return efun::debug_info(req, args...);
 }
-// }}}
-// shutdown {{{
 // --------------------------------------------------------------------------
 /// @brief shutdown 
 ///
@@ -122,9 +115,6 @@ public void shutdown(int ret, string msg)
         error("illegal call to shutdown");
     }
 }
-
-// }}}
-// exec {{{
 // --------------------------------------------------------------------------
 /// @brief exec 
 ///
@@ -147,5 +137,4 @@ public int exec(object to, object from)
     }
     return efun::exec(to, from);
 }
-// }}}
 ///  @}

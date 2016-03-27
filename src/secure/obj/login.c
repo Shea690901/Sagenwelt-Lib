@@ -8,8 +8,7 @@
 #include <message.h>
 #include <login.h>
 
-// helper functions {{{
-// timeout {{{
+// helper functions
 // --------------------------------------------------------------------------
 /// @brief timeout
 ///
@@ -31,8 +30,6 @@ private void timeout(void)
     else
         call_out( (: timeout :), LOGIN_TIMEOUT);
 }
-// }}}
-// login_name {{{
 private void login_name(string arg)
 {
     if(!arg || (arg == ""))
@@ -44,11 +41,9 @@ private void login_name(string arg)
     if(strsrch(arg, '@') != -1)
     {
         arg = (string)MUD_INFO_D->get_email_name(arg);
+    }
 }
-// }}}
-// }}}
-// interactive applies {{{
-// catch_tell {{{
+// interactive applies
 // --------------------------------------------------------------------------
 /// @brief catch_tell
 ///
@@ -65,8 +60,6 @@ private void catch_tell(string msg)
 {
     receive(message);
 }
-// }}}
-// logon {{{
 // --------------------------------------------------------------------------
 /// @brief logon
 ///
@@ -92,8 +85,6 @@ private object logon(void)
     receive(LOGIN_PROMP);
     input_to( (: login_name :), TRUE);
 }
-// }}}
-// net_dead {{{
 // --------------------------------------------------------------------------
 /// @brief net_dead
 ///
@@ -109,8 +100,6 @@ private void net_dead(void)
     // we don't have anything to loose
     destruct();
 }
-// }}}
-// receive_message {{{
 // --------------------------------------------------------------------------
 /// @brief receive_message
 ///
@@ -130,8 +119,6 @@ private void receive_message(string class, string message)
     if((class == MSGCLASS_LOGON) || (class == MSGCLASS_SYSTEM))
         receive(message);
 }
-// }}}
-// telnet_suboption {{{
 // --------------------------------------------------------------------------
 /// @brief telnet_suboption
 ///
@@ -157,8 +144,6 @@ private void receive_message(string class, string message)
 private void telnet_suboption(string buffer)
 {
 }
-// }}}
-// terminal_type {{{
 // --------------------------------------------------------------------------
 /// @brief terminal_type
 ///
@@ -172,8 +157,6 @@ private void telnet_suboption(string buffer)
 private void terminal_type(string term)
 {
 }
-// }}}
-// write_prompt {{{
 // --------------------------------------------------------------------------
 /// @brief write_prompt
 ///
@@ -185,26 +168,18 @@ private void terminal_type(string term)
 private void write_prompt(void)
 {
 }
-// }}}
-// }}}
 
-// event handler {{{
-// destruct {{{
+// event handler
 public void event_destruct(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
     destruct();
 }
-// }}}
-// shutdown {{{
 public void event_shutdown(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
-    receive("\nSorry, we're shutting down...\nPlease try again in a few
-            minutes...\n");
+    receive("\nSorry, we're shutting down...\nPlease try again in a few minutes...\n");
     destruct();
 }
-// }}}
-// }}}

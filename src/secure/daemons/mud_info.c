@@ -6,7 +6,6 @@
 /// @version 0.0.0
 /// @date 2015-12-20
 
-// mssp_telopt {{{
 // --------------------------------------------------------------------------
 /// @brief mssp_telopt
 ///
@@ -126,8 +125,6 @@ string mssp_telopt()
         "WORLD ORIGINALITY"     : "Mostly Original",
     ]);
 }
-// }}}
-// mssp_login {{{
 // --------------------------------------------------------------------------
 /// @brief mssp_login
 ///
@@ -147,8 +144,6 @@ string mssp_login()
 
     return ret;
 }
-// }}}
-// author_file {{{
 // --------------------------------------------------------------------------
 /// @brief author_file
 ///
@@ -205,8 +200,6 @@ public string author_file(string file)
     }
     return UNKNOWN_UID;     // everything else is unknown to this function
 }
-// }}}
-// domain_file {{{
 // --------------------------------------------------------------------------
 /// @brief domain_file
 ///
@@ -251,4 +244,3 @@ public string domain_file(string file)
     }
     return UNKNOWN_DOMAIN;              // everything else is unknown tl this function
 }
-// }}}

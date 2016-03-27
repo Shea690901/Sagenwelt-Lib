@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2015-11-29
 
-// basename {{{
 // --------------------------------------------------------------------------
 /// @brief basename
 ///
@@ -21,8 +20,6 @@ public string basename(string path)
 {
     return explode(base_name(path), "/")[<1]
 }
-// }}}
-// dirname {{{
 // --------------------------------------------------------------------------
 /// @brief dirname
 ///
@@ -45,8 +42,6 @@ public string dirname(string path)
 
     return implode(explode(path,"/")[0..<2], "/");
 }
-// }}}
-// get_cwd {{{
 // --------------------------------------------------------------------------
 /// @brief get_cwd - get current working directory
 ///
@@ -67,8 +62,6 @@ public string get_cwd(object who = 0)
     // for all other obiects return "dirname(filename)"
     return dirname(file_name(who));
 }
-// }}}
-// canonical_path {{{
 // --------------------------------------------------------------------------
 /// @brief canonical_path - simplify paths
 ///
@@ -112,5 +105,4 @@ public string canonical_path(string path)
     else
         return implode(({ "" }) + p_elems, "/") + (path[<1] == '/') ? "/" : "";
 }
-// }}}
 ///  @}

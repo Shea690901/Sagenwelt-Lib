@@ -6,7 +6,6 @@
 /// @version 0.1.0
 /// @date 2016-01-25
 
-// gcd {{{
 // --------------------------------------------------------------------------
 /// @brief gcd -,greatest common devisor
 /// @Param a
@@ -30,8 +29,6 @@ public int gcd(int a, int b)
     }
     return a;
 }
-// }}}
-// lcm {{{
 // --------------------------------------------------------------------------
 /// @brief lcm - least common multiple
 /// @Param a
@@ -46,8 +43,6 @@ public int lcm(int a, int b)
         b /= gcd(b, a);
     return a * b;
 }
-// }}}
-// fib {{{
 // --------------------------------------------------------------------------
 /// @brief fib - fibonaccci number
 /// @Param n
@@ -73,5 +68,4 @@ public int fib(int n)
     }
     return f2;
 }
-// }}}
 ///  @}

@@ -12,50 +12,41 @@
 #include <pragmas.h>        // setting standard pragmas
 #include <syslog.h>         // needed for logging
 
-// function prototypes (ordered by groups{{{
-// simul_efun_helper {{{
+// simul_efun_helper
 public          void     done_startup(void);
-//  }}}
-// array {{{
+// array
 public          mixed   *distinct_array(mixed *arr);
 public          mixed   *scramble_array(mixed *arr);
 public varargs  mapping  unique_mapping(mixed *arr, mixed sep, mixed skip)
-// }}}
-// driver {{{
+// driver
 public varargs  mixed    debug_info(int req, mixed *args...);
 public          int      exec(object to, object from);
 public          void     reset_eval_cost(void);
 public          void     set_eval_limit(int limit);
 public          void     shutdown(int ret, string msg)
-//  }}}
-// file_system {{{
+// file_system
 public          string   basename(string path);
 public          string   canonical_path(string path);
 public          string   dirname(string path);
 public          string   get_cwd(object who);
-// }}}
-// general {{{
+// general
 public          int      cmp(mixed a, mixed b);
 public          int      get_debug(void);
 public          int      set_debug(int val);
-//  }}}
-// logging {{{
+// logging
 public varargs  void     syslog(int priority, string format, mixed *args...);
 public varargs  void     m_syslog(string uid, string gid, int priority, string format, mixed *args...)
-// }}}
-// math {{{
+// math
 public          int      fib(int n);
 public          int      gcd(int a, int b);
 public          int      lcm(int a, int b);
-// }}}
-// objects {{{
+// objects
 public          string   author_of(string file);
 public          string   domain_of(string file);
 public varargs  void     destruct(object ob);
 public          string   file_name(object who = 0, int flag = 0);
 public          object   simul_efun(void);
-// }}}
-// regex_globbing {{{
+// regex_globbing
 public          int      fnmatch(string name, string pattern);
 public          string  *glob(mixed pathname);
 public          string   gsub(string s, string pat, string repl);
@@ -68,11 +59,9 @@ public          int      rsearch(string s, string pat);
 public          int      search(string s, string pat);
 public          string  *split(string str, string pattern);
 public          string   sub(string s, string pat, string repl);
-// }}}
-// room {{{
+// room
 public          string   opposite_dir(string str, int article = 0);
-// }}}
-// security {{{
+// security
 public          int      init_eids(void);
 public          string   getgid(mixed who);
 public          string   getegid(mixed who);
@@ -87,15 +76,13 @@ public          int      creatorp(object ob);
 public          int      Dcreatorp(object ob, string domain = "@any@");
 public          int      Dlordp(object ob, string domain = "@any@");
 public          int      archp(object ob);
-///  }}}
-// strings {{{
+// strings
 public          int      atoi(string arg);
 public          string   itoa(int arg);
 public          string   add_article(string text, int flag = 0);
 public          string   i_wrap(string text, int width = 80, int indent = 4);
 public          string   remove_article(string text);
-///  }}}
-// terminal {{{
+// terminal
 public          string   blink(string str);
 public          string   bold(string str);
 public          string   clear_line(void);
@@ -107,7 +94,5 @@ public          string   set_bg_color(int color = COL_BLACK, int bright = 0);
 public          string   set_fg_color(int color = COL_WHITE, int bright = 0);
 public          string   underscore(string str);
 public          string   up_line(void);
-///  }}}
-///  }}}
 #endif // __SEC_SIMUL_EFUN_H
 /// @}

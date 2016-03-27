@@ -18,7 +18,7 @@
 #include <privs.h>                  // privlege related defines
 #include <driver/parser_error.h>    // for master::parser_error_message
 
-// private function forward declarations {{{
+// private function forward declarations
 private int      retrieve_ed_setup(object user);
 private int      save_ed_setup(object user, int config);
 private int      valid_bind(object doer, object owner, object victim);
@@ -62,9 +62,8 @@ private void     log_error(string file, string message);
 private void     preload(string str);
 private void     save_master(void);
 private void     startup_summary(void);
-// }}}
 
-// global vars {{{
+// global vars
 private nosave int *startup_info;       ///< how many objects to be preloaded, errors...
 
 /// @brief acl_*
@@ -89,9 +88,8 @@ private mapping acl_read,               ///< acls for file read access
 /// ])
 /// where assigned privileges is a bitfield (string)
 private mapping privileges;
-// }}}
 
-// std applies {{{
+// std applies
 private void create()
 {
 #ifdef __HAS_RUSAGE__
@@ -139,10 +137,8 @@ private void reset()
 {
     save_object(MASTER_SAVE);
 }
-// }}}
 
-// helper functions {{{
-// save_master() {{{
+// helper functions
 // --------------------------------------------------------------------------
 /// @brief save_master
 /// the master is a _very_ important object, as such we must be extremly
@@ -170,8 +166,6 @@ private void save_master(void)
     else                                // now we can remove old backup
         rm(MASTER_SAVE + ".bak~");
 }
-// }}}
-// init_acl() {{{
 private mapping init_acl(string type)
 {
     string  cfg = "",
@@ -233,8 +227,6 @@ private mapping init_acl(string type)
 
     return ret;
 }
-// }}}
-// acl(request, info) {{{
 private string *acl(int request, mixed info)
 {
     mapping acl_list;
@@ -255,8 +247,6 @@ private string *acl(int request, mixed info)
     ret = match_path(acl_list, info[0]);
     return ret[info[1]];
 }
-// }}}
-// check_acl(request, euid, egie, info) {{{
 // --------------------------------------------------------------------------
 // request currently supported:
 // - _READ
@@ -367,8 +357,6 @@ public int check_acl(int request, string euid, string egid, mixed info)
     // everything else is disallowed
     return FALSE;
 }
-// }}}
-// init_privileges() {{{
 private mapping init_privileges(void)
 {
     string  cfg = "";
@@ -402,8 +390,7 @@ private mapping init_privileges(void)
 
     return ret;
 }
-// }}}
-// startup_summary() {{{
+
 private void startup_summary(void)
 {
     string out;
@@ -425,14 +412,10 @@ private void startup_summary(void)
     // now the mudlib is up and running, tell the simul_efuns so...
     done_startup();
 }
-// }}}
-// }}}
 
-// master applies {{{
+// master applies
 /// @name initialization
-// {{{
 /// @{
-// flag {{{
 // --------------------------------------------------------------------------
 /// @brief flag
 ///
@@ -470,8 +453,6 @@ private void flag(string driver_flag)
     }
 #endif
 }
-// }}}
-// epilog {{{
 // --------------------------------------------------------------------------
 /// @brief epilog
 ///
@@ -556,8 +537,6 @@ private string *epilog(int dummy)
 
     return ret;
 }
-// }}}
-// preload {{{
 // --------------------------------------------------------------------------
 /// @brief preload
 ///
@@ -610,13 +589,10 @@ private void preload(string str)
     if(startup_info[0] == startup_info[1])  // all objects tried to load?
         startup_summary();
 }
-// }}}
-///  @} }}}
+///  @}
 
 /// @name deinitialization
-// {{{
 /// @{
-// crash {{{
 // --------------------------------------------------------------------------
 /// @brief crash
 ///
@@ -648,13 +624,10 @@ private void crash(string crash_message, object command_giver, object current_ob
     reset_eval_cost();                  // we might need to do a lot of calls...
     event(objects( (: file_name($1)[0..8] == "/secure/" :) ), "shutdown");
 }
-// }}}
-///  @} }}}
+///  @}
 
 /// @name uid and security handling
-// {{{
 /// @{
-// get_bb_uid {{{
 // --------------------------------------------------------------------------
 /// @brief get_bb_uid
 ///
@@ -668,8 +641,6 @@ private string get_bb_uid(void)
 {
     return creator_file("/std");;
 }
-// }}}
-// get_root_uid {{{
 // --------------------------------------------------------------------------
 /// @brief get_root_uid
 ///
@@ -683,8 +654,6 @@ private string get_root_uid(void)
 {
     return creator_file("/secure");;
 }
-// }}}
-// author_file {{{
 // --------------------------------------------------------------------------
 /// @brief author_file
 ///
@@ -706,8 +675,6 @@ private string author_file(string file)
 {
     return author_of(file);
 }
-// }}}
-// domain_file {{{
 // --------------------------------------------------------------------------
 /// @brief domain_file
 ///
@@ -728,8 +695,6 @@ private string domain_file(string file)
 {
     return domain_of(file);
 }
-// }}}
-// creator_file {{{
 // --------------------------------------------------------------------------
 /// @brief creator_file
 ///
@@ -754,8 +719,6 @@ private string creator_file(string filename)
             author_of(filename),
             domain_of(filename));
 }
-// }}}
-// privs_file {{{
 // --------------------------------------------------------------------------
 /// @brief privs_file
 ///
@@ -770,8 +733,6 @@ private string privs_file(string file)
 {
     return match_path(privileges, file);
 }
-// }}}
-// valid_bind {{{
 // --------------------------------------------------------------------------
 /// @brief valid_bind
 ///
@@ -798,8 +759,6 @@ private int valid_bind(object doer, object owner, object victim)
             doer, owner, victim);
     return FALSE;
 }
-// }}}
-// valid_database {{{
 // --------------------------------------------------------------------------
 /// @brief valid_database
 /// @Param doer
@@ -829,8 +788,6 @@ private mixed valid_database(object doer, string action, mixed *info)
             doer, action, info);
     return FALSE;
 }
-// }}}
-// valid_hide {{{
 // --------------------------------------------------------------------------
 /// @brief valid_hide
 ///
@@ -854,8 +811,6 @@ private int valid_hide(object ob)
     syslog(LOG_AUTH|LOG_ERR, "Privilege violation: valid_hide(%O)", ob);
     return FALSE;
 }
-// }}}
-// valid_link {{{
 // --------------------------------------------------------------------------
 /// @brief valid_link
 ///
@@ -872,8 +827,6 @@ private int valid_link(string from, string to)
     // we support linking, security check comes from within the driver
     return TRUE;
 }
-// }}}
-// valid_object {{{
 // --------------------------------------------------------------------------
 /// @brief valid_object
 ///
@@ -927,8 +880,6 @@ private int valid_object(object ob)
             ob, po, efun::geteuid(po));
     return FALSE;
 }
-// }}}
-// valid_override {{{
 // --------------------------------------------------------------------------
 /// @brief valid_override
 ///
@@ -984,8 +935,6 @@ private int valid_override(string file, string efun_name, string mainfile)
             file, efun_name, mainfile);
     return FALSE;
 }
-// }}}
-// valid_read {{{
 // --------------------------------------------------------------------------
 /// @brief valid_read
 ///
@@ -1018,8 +967,6 @@ public int valid_read(string file, object ob, string func)
                 file, ob, euid, egid, func);
     return FALSE;
 }
-// }}}
-// valid_seteuid {{{
 // --------------------------------------------------------------------------
 /// @brief valid_seteuid
 ///
@@ -1086,8 +1033,6 @@ private int valid_seteuid(object ob, string t_euid)
             ob, uid, euid ? euid : "-", t_euid);
     return FALSE;
 }
-// }}}
-// valid_shadow {{{
 // --------------------------------------------------------------------------
 /// @brief valid_shadow
 ///
@@ -1131,8 +1076,6 @@ private int valid_shadow(object ob)
             ob, po, efun::geteuid(po));
     return FALSE;
 }
-// }}}
-// valid_socket {{{
 // --------------------------------------------------------------------------
 /// @brief valid_socket
 ///
@@ -1183,8 +1126,6 @@ private int valid_socket(object ob, string func, mixed *info)
             ob, func, info);
     return FALSE;
 }
-// }}}
-// valid_write {{{
 // --------------------------------------------------------------------------
 /// @brief valid_write
 ///
@@ -1212,19 +1153,16 @@ public int valid_write(string file, object ob, string func)
         return TRUE;
 
     // everything else fails
-    if(origin() == ORIGIN_DIVER)    // log only for actual requets
+    if(origin() == ORIGIN_DIVER)    // log only for actual requets, not some lib-internal stat
         syslog(LOG_AUTH|LOG_ERR,
                 "Privilege violation: valid_write(\"%s\", %O[%s:%s], \"%s\")",
                 file, ob, euid, egid, func);
     return FALSE;
 }
-// }}}
-//  @} }}}
+//  @}
 
 /// @name connection handling
-// {{{
 /// @{
-// connect {{{
 // --------------------------------------------------------------------------
 /// @brief connect
 ///
@@ -1275,8 +1213,6 @@ private object connect(int port)
     // give the driver the object this connection should be associated with
     return l_ob;
 }
-// }}}
-// get_mud_stats {{{
 // --------------------------------------------------------------------------
 /// @brief get_mud_stats
 ///
@@ -1293,13 +1229,9 @@ private mapping get_mud_stats(void)
     syslog(LOG_KERN|LOG_INFO, "mssp-telopt query");
     return MUD_INFO_D->mssp_telopt();
 }
-// }}}
-// }}}
 
 /// @name error and logfile handling
-// {{{
 /// @{
-// error_handler {{{
 // --------------------------------------------------------------------------
 /// @brief error_handler
 ///
@@ -1378,8 +1310,6 @@ private void error_handler(mapping err, int caught)
 
     m_syslog(author, domain, LOG_KERN|LOG_ERR, str);
 }
-// }}}
-// log_error {{{
 // --------------------------------------------------------------------------
 /// @brief log_error
 ///
@@ -1404,14 +1334,10 @@ private void log_error(string file, string message)
         level = LOG_ERR;
     m_syslog(author_file(file), dlmain_file(file), LOG_USER|level, "(%s): %s", file, message);
 }
-// }}}
 ///  @}
-// }}}
 
 /// @name filename handling
-// {{{
 /// @{
-// get_save_file_name {{{
 // --------------------------------------------------------------------------
 /// @brief get_save_file_name
 ///
@@ -1426,8 +1352,6 @@ private string get_save_file_name(string file, object who)
 {
     return sprintf("%s.edsav", file);
 }
-// }}}
-// make_path_absolute {{{
 // --------------------------------------------------------------------------
 /// @brief make_path_absolute
 ///
@@ -1440,13 +1364,10 @@ private string make_path_absolute(string rel_path)
 {
     return canonical_path(get_cwd(PO()) + "/" + rel_path);
 }
-// }}}
-///  @} }}}
+///  @}
 
 /// @name parser-helper
-// {{{
 /// @{
-// parser_error_message {{{
 // --------------------------------------------------------------------------
 /// @brief parser_error_message
 /// @Param type
@@ -1522,8 +1443,6 @@ private string parser_error_message(int type, object ob, mixed arg, int flag)
             return ret + "Oops?!? What happened now?\n";
     }
 }
-// }}}
-// parse_command_all_word {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_all_word
 ///
@@ -1536,8 +1455,6 @@ private string parse_command_all_word(void)
 {
     return "all";
 }
-// }}}
-// parse_command_id_list {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_id_list
 ///
@@ -1550,8 +1467,6 @@ private string *parse_command_id_list(void)
 {
     return ({ "one", "thing" });
 }
-// }}}
-// parse_command_plural_id_list {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_plural_id_list
 ///
@@ -1565,8 +1480,6 @@ private string *parse_command_plural_id_list(void)
 {
     return ({ "ones", "things", "them" });
 }
-// }}}
-// parse_command_adjectiv_id_list {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_plural_id_list
 ///
@@ -1580,8 +1493,6 @@ private string *parse_command_adjectiv_id_list(void)
 {
     return ({ "iffish" });
 }
-// }}}
-// parse_command_users {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_users
 /// @Returns
@@ -1590,8 +1501,6 @@ private object *parse_command_users(void)
 {
     return users();
 }
-// }}}
-// parse_command_prepos_list {{{
 // --------------------------------------------------------------------------
 /// @brief parse_command_prepos_list
 ///
@@ -1613,13 +1522,10 @@ private string *parse_command_prepos_list(void)
             "on top of", "outside of", "over to", "round about", "up to",
             "-a", "-r"});
 }
-// }}}
-///  @} }}}
+///  @}
 
 /// @name general functions
-// {{{
 /// @{
-// compile_object {{{
 // --------------------------------------------------------------------------
 /// @brief compile_object
 ///
@@ -1627,7 +1533,7 @@ private string *parse_command_prepos_list(void)
 /// the driver to load a file that does not exist. For example, the driver
 /// will call compile_object("/obj/file.r") in master if the mudlib calls
 /// call_other("/obj/file.r", "some_function") or new("/obj/file.r") and
-/// obj/file.r.c names a file that does not exist. The compile_object()
+/// /obj/file.r.c names a file that does not exist. The compile_object()
 /// function is expected to return 0 if the mudlib does not wish to associate
 /// an object with the file name "/obj/file.r". If the mudlib does wish to
 /// associate an object with the filename "/obj/file.r", then the mudlib
@@ -1644,14 +1550,14 @@ private object compile_object(string pathname)
         return MAP_D->get_room(pathname[9..]);  // ask the map daemon
     return 0;                                   // no others used as of yet
 }
-// }}}
-// get_include_path {{{
+// --------------------------------------------------------------------------
 /// @brief get_include_path
 ///
 /// dynamic generation of include path based on the compiled object
 /// @param file - absolute path to the object storage in disk
 /// @return - array of include directories
 /// ':DEFAULT:' will be replaced by runtime configuration
+// --------------------------------------------------------------------------
 private string *get_include_path(string file)
 {
     string *path;
@@ -1685,8 +1591,6 @@ private string *get_include_path(string file)
     }
     return ({ "/std/include" });
 }
-// }}}
-// object_name {{{
 // --------------------------------------------------------------------------
 /// @brief object_name
 ///
@@ -1704,8 +1608,6 @@ private string object_name(object ob)
         return sprintf("<%s's link>", getuid(ob));
     return file_name(ob);
 }
-// }}}
-// retrieve_ed_setup {{{
 // --------------------------------------------------------------------------
 /// @brief retrieve_ed_setup
 ///
@@ -1721,8 +1623,6 @@ private int retrieve_ed_setup(object user)
         return 0;
     return user->get_ed_setup();
 }
-// }}}
-// save_ed_setup {{{
 // --------------------------------------------------------------------------
 /// @brief save_ed_setup
 ///
@@ -1739,26 +1639,19 @@ private int save_ed_setup(object user, int config)
         return FALSE;
     return user->set_ed_setup(config);
 }
-// }}}
-///  @} }}}
-///  }}}
+///  @}
 
-// event handler {{{
-// destruct {{{
+// event handler
 public void event_destruct(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
     save_master();
 }
-// }}}
-// shutdown {{{
 public void event_shutdown(void)
 {
     if(origin() != ORIGIN_EFUN)
         return;
     save_master();
 }
-// }}}
-// }}}
 ///  @}
