@@ -62,7 +62,7 @@
 "                               (default 1)
 "
 "               Additional following settings from 'c.vim' are recognized:
-"                   c_comment_strings,c_minlines,c_no_if0,c_no_tab_space_error,
+"                   c_comment_strings,c_no_if0,c_no_tab_space_error,
 "                   c_no_trail_space_error,c_no_utf,c_space_errors
 
 " Nodule: Todo for this file.  {{{1
@@ -109,16 +109,6 @@ set cpo&vim
 " Nodule: Initializations {{{1
 
 syn case match               " lpc is case sensitive
-
-if exists("c_minlines")
-    let b:c_minlines = c_minlines
-else
-    if !exists("c_no_if0")
-        let b:c_minlines = 100  " #if 0 constructs can be long
-    else
-        let b:c_minlines = 30   " mostly for () constructs
-    endif
-endif
 
 if !exists("b:lpc_folding")
   let b:lpc_folding = 1         " default use folding
@@ -195,7 +185,7 @@ elseif b:lpc_driver == "LDMud"
     let s:lpc_driver_has_closures = 1
 endif
 
-exec "syn sync ccomment lpcComment minlines=" . b:c_minlines
+syn sync fromstart
 
 " Make sure these options take place since we no longer depend on file type
 " plugin for C
@@ -341,7 +331,14 @@ endif
 if b:lpc_mudlib == "Morgengrauen"
 "    syn keyword     lpc_sefuns   abs acos add_action add_worth all_environment allocate and_bits apply nextgroup=lpcSEfunParen
 elseif b:lpc_mudlib == "Sagenwelt"
-    syn keyword lpc_sefuns  contained getegid geteuid getgid getuid m_syslog setegid seteuid syslog
+    syn keyword lpc_sefuns  contained Dcreatorp Dlordp add_article archp atoi author_of basename blink bold canonical_path
+    syn keyword lpc_sefuns  contained clear_line clear_screen cmp creatorp cred_cmp debug_info destruct dirname distinct_array
+    syn keyword lpc_sefuns  contained domain_of done_startup elder erase_line exec fib file_name fnmatch gcd get_cwd get_debug
+    syn keyword lpc_sefuns  contained getegid getgid getugid getuid glob gsub has_magic i_wrap init_eids insensitive_pattern
+    syn keyword lpc_sefuns  contained insensitive_regexp inverse itoa lcm m_syslog move_object normal opposite_dir playerp printf
+    syn keyword lpc_sefuns  contained reg_pat_translate regexplode remove_article reset_eval_cost rsearch say scramble_array
+    syn keyword lpc_sefuns  contained search set_bg_color set_debug set_eval_limit set_fg_color setegid seteuid shout shutdown
+    syn keyword lpc_sefuns  contained simul_efun split sub syslog tell_object tell_room underscore unique_mapping up_line write
 endif
 " Nodule: Efuns {{{1
 " sorted by driver
