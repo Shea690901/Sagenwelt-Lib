@@ -11,16 +11,16 @@
 
 inherit M_MENU;
 
-private MENU      toplevel;
+private MENU        toplevel;
 
-private MENU      race_sel;
-private string   *races;
+private mapping     races;
+private MENU        race_sel;
 
-private MENU      gender_sel;
-private string   *gender;
+private mapping     genders;
+private MENU        gender_sel;
 
-private mapping   player_info;
-private function  call_back;        // call back function to be called after
+private mapping     player_info;
+private function    call_back;      // call back function to be called after
                                     // all information is gathered
 
 // once we've gathered everything we inform our caller and terminate
@@ -28,6 +28,30 @@ private void finished(void)
 {
     evaluate(call_back, player_info);
     quit_menu_application();
+}
+
+// check if choosen race allows given gender
+private int check_race(string gender)
+{
+    string race;
+
+    if(!(race = player_info[MI_PI_RACE]))   // no choosen race
+        return TRUE;                        // => all genders allowed
+    else if(races[race][gender])            // gender allowed
+        return TRUE;
+    return FALSE;                           // everything else forbidden
+}
+
+// check if choosen gender allows given race
+private int check_gender(string race)
+{
+    string gender;
+
+    if(!(gender = player_info[MI_PI_GENDER]))   // no choosen gender
+        return TRUE;                            // => all races allowed
+    else if(genders[gender][race])              // race allowed
+        return TRUE;
+    return FALSE;                               // everything else forbidden
 }
 
 // check if everything is gathered, if so we allow finished to be called
@@ -108,8 +132,6 @@ END_HELP
 
 private void create(void)
 {
-    int idx;
-
     MENU_ITEM sep = new_seperator("");
 
     init_eids();
@@ -120,27 +142,24 @@ private void create(void)
 
     // toplevel menu
     add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("Race selection",   race_sel,         "r"));
-    add_menu_item(toplevel, new_menu_item("Gender selection", gender_sel,       "g"));
-    add_menu_item(toplevel, new_menu_item("Name selection",   (: name_sel :),   "n"));
-    add_menu_item(toplevel, new_menu_item("Password",         (: password :),   "p"));
+    add_menu_item(toplevel, new_menu_item("Race selection",   race_sel,            "r"));
+    add_menu_item(toplevel, new_menu_item("Gender selection", gender_sel,          "g"));
+    add_menu_item(toplevel, new_menu_item("Name selection",   (: name_sel :),      "n"));
+    add_menu_item(toplevel, new_menu_item("Password",         (: password :),      "p"));
     add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("eMail address",    (: email :),      "e"));
-    add_menu_item(toplevel, new_menu_item("Web page",         (: homepage :),   "w"));
+    add_menu_item(toplevel, new_menu_item("eMail address",    (: email :),         "e"));
+    add_menu_item(toplevel, new_menu_item("Web page",         (: homepage :),      "w"));
     add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("Help", (: toplevel_help :),          "h", 1));
-    add_menu_item(toplevel, new_menu_item("Finished", (: finished :),           "f"), 0, (: check_finished :));
-    add_menu_item(toplevel, new_menu_item("Logout", (: logout :),               "q"));
+    add_menu_item(toplevel, new_menu_item("Help",             (: toplevel_help :), "h", 1));
+    add_menu_item(toplevel, new_menu_item("Finished",         (: finished :),      "f", 0, (: check_finished :)));
+    add_menu_item(toplevel, new_menu_item("Logout",           (: logout :),        "q"));
 
     // race selection menu
     race_sel    = new_menu("Race selection");
     add_menu_item(race_sel, sep);
-    idx = 0;
-    foreach(string entry in (races = (string*)RACES_D->get_races()))
-    {
-        add_menu_item(race_sel, new_menu_item(capitalize(entry), (: choose_race($(idx)) :)));
-        idx++;
-    }
+    races = (mapping)RACES_D->get_races_map();
+    foreach(string entry in keys(races))
+        add_menu_item(race_sel, new_menu_item(capitalize(entry), (: choose_race($(entry)) :), 0, (: check_gender($(entry)) :)));
     add_menu_item(race_sel, sep);
     add_menu_item(race_sel, new_menu_item("Help", (: race_sel_help :),          "h"));
     add_menu_item(race_sel, new_menu_item("Back", (: toplevel :),               "q"));
@@ -148,12 +167,9 @@ private void create(void)
     // gender selection menu
     gender_sel  = new_menu("Gender selection");
     add_menu_item(gender_sel, sep);
-    idx = 0;
-    foreach(string entry in (gender = (string*)RACES_D->get_gender()))
-    {
-        add_menu_item(gender_sel, new_menu_item(capitalize(entry), (: choose_gender($(idx)) :)));
-        idx++;
-    }
+    gender = (mapping)RACES_D->get_gender_map();
+    foreach(string entry in keys(gender))
+        add_menu_item(gender_sel, new_menu_item(capitalize(entry), (: choose_gender($(entry)) :), 0, (: check_race($(entry)) :)));
     add_menu_item(gender_sel, sep);
     add_menu_item(gender_sel, new_menu_item("Help", (: gender_sel_help :),          "h"));
     add_menu_item(gender_sel, new_menu_item("Back", (: toplevel :),  "q"));
