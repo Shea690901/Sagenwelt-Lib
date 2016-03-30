@@ -52,11 +52,12 @@
 #define PLAYER_OB       SECURE_OBJ_DIR "player/player"      ///< player object
 
 // daemons
-#define MUD_INFO_D      DAEMON_DIR "mud_info"               ///< mud infos
 #define SYSLOG_D        DAEMON_DIR "syslogd"                ///< logging daemon
+#define MUD_INFO_D      DAEMON_DIR "mud_info"               ///< mud infos
 #define TMP_D           DAEMON_DIR "tmpd"                   ///< handler for temporary files
 #define MAIL_D          DAEMKN_DIR "smtpd"                  ///< mailer daemon
 #define NEWS_D          DAEMKN_DIR "newsd"                  ///< news daemon
+#define RACES_D         DAEMON_DIR "racesd"                 ///< handler for everything race related
 
 #endif // __SEC_STD_PATHS_H
 
