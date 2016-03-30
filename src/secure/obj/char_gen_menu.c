@@ -4,20 +4,20 @@
 /// @version 0.0.0
 /// @date 2016-02-02
 
-// current version of player data
-// please update when ever some variable is added, removed or otherwise
-// changed...
-#define PLAYER_VERSION  1
+#include <std_paths.h>
+#include <race_d.h>
 
 inherit M_MENU;
 
-private MENU        toplevel;
+private MENU        main_menu;
 
 private mapping     races;
-private MENU        race_sel;
+private MENU        race_menu;
+private MENU_ITEM   race_selected;
 
 private mapping     genders;
-private MENU        gender_sel;
+private MENU        gender_menu;
+private MENU_ITEM   gender_selected;
 
 private mapping     player_info;
 private function    call_back;      // call back function to be called after
@@ -35,11 +35,11 @@ private int check_race(string gender)
 {
     string race;
 
-    if(!(race = player_info[MI_PI_RACE]))   // no choosen race
-        return TRUE;                        // => all genders allowed
-    else if(races[race][gender])            // gender allowed
+    if((race = player_info[MI_PI_RACE]) == "")  // no choosen race
+        return TRUE;                            // => all genders allowed
+    else if(member_array(gender, races[race][]))                // gender allowed
         return TRUE;
-    return FALSE;                           // everything else forbidden
+    return FALSE;                               // everything else forbidden
 }
 
 // check if choosen gender allows given race
@@ -57,27 +57,32 @@ private int check_gender(string race)
 // check if everything is gathered, if so we allow finished to be called
 private int check_finished(void)
 {
-    if(                                 // we need:
-       !player_info[MI_PI_NAME]   ||    // a name
-       !player_info[MI_PI_PWD]    ||    // a password
-       !player_info[MI_PI_RACE]   ||    // a race
-       !player_info[MI_PI_GENDER]       // the gender
+    if(                                     // we need:
+       player_info[MI_PI_NAME]   == ""  ||  // a name
+       player_info[MI_PI_PWD]    == ""  ||  // a password
+       player_info[MI_PI_RACE]   == ""  ||  // a race
+       player_info[MI_PI_GENDER] == ""      // the gender
       )
-        return FALSE;                   // still missing something
+        return FALSE;                       // still missing something
     return TRUE;
 }
 
 // someone choose to logout during character generation....
 private void logout(void)
 {
+    find_object(MUD_INFO_D)->unregister(TO, player_info[MI_PI_NAME]);
     environment()->quit();
     quit_menu_application();
 }
 
-// help
-private void toplevel_help(string arg)
+private void help(string arg)
 {
-    write(
+    string msg;
+
+    switch(arg)
+    {
+        case "top":
+            msg =
 @END_HELP
 For a new player it is mandatory to choose a race, a gender, a name and a password. Neither an email address, nor a web page is
 necessary, although it is recommended to supply at least the email address!
@@ -99,87 +104,129 @@ normal character development (most likely permanently) or the help of e.g. some 
 (most likely temporary).
 
 Either of password, email address and web page are available for change for as long as the character exists!
-END_HELP
-        );
-}
-
-private void race_sel_help(string arg)
-{
-    write(
+END_HELP ;
+            break;
+        case "race":
+            msg =
 @END_HELP
 Here you might choose between any available race.
 
 ATTENTION:
 By choosing some gender before coming here said choice might be limited!
 
-To get an overview of the capabilities of one race or another just choose it from the menu, you will be given the opportunity to
-discard this choice.
-END_HELP
-        );
-}
-
-private void gender_sel_help(string arg)
-{
-    write(
+To get an overview of the capabilities of one race or another just choose it from the menu.
+Depending on the given choices you might later either choose another race to change your selection or choose the same race a
+second time to completely undo your choice.
+END_HELP ;
+            break;
+        case "gender":
+            msg =
 @END_HELP
 Depending on the choosen race, if any, you will be given a choice of available genders.
 
 Furthermore depending on the given choices you might later either choose another gender to change your selection or choose the
 same gender a second time to completely undo your choice.
-END_HELP
-        );
+END_HELP ;
+            break;
+        default:
+            msg = "Huh??? Something is definitly wrong here... Somehow I don't know anything about <" + arg + ">...";
+            break;
+    }
+    write(msg);
+}
+
+private void choose_race(string arg)
+{
+    if(player_info[MI_PI_RACE] == arg)
+    {
+        player_info[MI_PI_RACE] = "";
+        set_menu_item_description(race_selected, "Selected: -");
+    }
+    else
+    {
+        player_info[MI_PI_RACE] = arg;
+        set_menu_item_description(race_selected, "Selected: " + player_info[MI_PI_RACE]);
+        write(races[arg][RD_RACE_INFO]);
+    }
+}
+
+private void choose_gender(string arg)
+{
+    if(player_info[MI_PI_GENDER] == arg)
+    {
+        player_info[MI_PI_GENDER] = "";
+        set_menu_item_description(gender_selected, "Selected: -")
+    }
+    else
+    {
+        player_info[MI_PI_GENDER] = arg;
+        set_menu_item_description(gender_selected, "Selected: " + player_info[MI_PI_GENDER])
+    }
 }
 
 private void create(void)
 {
+    int       idx;
     MENU_ITEM sep = new_seperator("");
+    MENU_ITEM top = new_menu_item("Back", (: main_menu :), "b");
 
     init_eids();
 
-    player_info = ([]);
+    player_info = ([
+            MI_PI_NAME  : = "",
+            MI_PI_PWD   : = "",
+            MI_PI_RACE  : = "",
+            MI_PI_GENDER: = ""
+            ]);
 
-    toplevel    = new_menu(MUD_NAME + " CHARACTER GENEARATION");
+    main_menu    = new_menu(MUD_NAME + " CHARACTER GENEARATION");
 
-    // toplevel menu
-    add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("Race selection",   race_sel,            "r"));
-    add_menu_item(toplevel, new_menu_item("Gender selection", gender_sel,          "g"));
-    add_menu_item(toplevel, new_menu_item("Name selection",   (: name_sel :),      "n"));
-    add_menu_item(toplevel, new_menu_item("Password",         (: password :),      "p"));
-    add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("eMail address",    (: email :),         "e"));
-    add_menu_item(toplevel, new_menu_item("Web page",         (: homepage :),      "w"));
-    add_menu_item(toplevel, sep);
-    add_menu_item(toplevel, new_menu_item("Help",             (: toplevel_help :), "h", 1));
-    add_menu_item(toplevel, new_menu_item("Finished",         (: finished :),      "f", 0, (: check_finished :)));
-    add_menu_item(toplevel, new_menu_item("Logout",           (: logout :),        "q"));
+    // main menu
+    add_menu_item(main_menu, sep);
+    add_menu_item(main_menu, new_seperator("Mandatory:"));
+    add_menu_item(main_menu, new_menu_item("Race selection",   race_menu,         "r"));
+    add_menu_item(main_menu, new_menu_item("Gender selection", gender_menu,       "g"));
+    add_menu_item(main_menu, new_menu_item("Name selection",   (: name_menu :),   "n"));
+    add_menu_item(main_menu, new_menu_item("Password",         (: password :),    "p"));
+    add_menu_item(main_menu, sep);
+    add_menu_item(main_menu, new_seperator("Optional:"));
+    add_menu_item(main_menu, new_menu_item("eMail address",    (: email :),       "e"));
+    add_menu_item(main_menu, new_menu_item("Web page",         (: homepage :),    "w"));
+    add_menu_item(main_menu, sep);
+    add_menu_item(main_menu, new_menu_item("Help",             (: help, "top" :), "h", 1));
+    add_menu_item(main_menu, new_menu_item("Finished",         (: finished :),    "f", 0, (: check_finished :)));
+    add_menu_item(main_menu, new_menu_item("Logout",           (: logout :),      "q"));
 
     // race selection menu
-    race_sel    = new_menu("Race selection");
-    add_menu_item(race_sel, sep);
+    race_menu    = new_menu("Race selection");
+    add_menu_item(race_menu, sep);
     races = (mapping)RACES_D->get_races_map();
-    foreach(string entry in keys(races))
-        add_menu_item(race_sel, new_menu_item(capitalize(entry), (: choose_race($(entry)) :), 0, (: check_gender($(entry)) :)));
-    add_menu_item(race_sel, sep);
-    add_menu_item(race_sel, new_menu_item("Help", (: race_sel_help :),          "h"));
-    add_menu_item(race_sel, new_menu_item("Back", (: toplevel :),               "q"));
+    idx   = 1;
+    foreach(string entry in sort_array(keys(races), 1))
+        add_menu_item(race_menu, new_menu_item(capitalize(entry), (: choose_race, entry :), idx++, 1, (: check_gender, entry :)));
+    add_menu_item(race_menu, sep);
+    add_menu_item(race_menu, race_selected = new_seperator("Selected: -"));
+    add_menu_item(race_menu, new_menu_item("Help", (: help, "race" :), "h", 1));
+    add_menu_item(race_menu, top);
 
     // gender selection menu
-    gender_sel  = new_menu("Gender selection");
-    add_menu_item(gender_sel, sep);
+    gender_menu  = new_menu("Gender selection");
+    add_menu_item(gender_menu, sep);
     gender = (mapping)RACES_D->get_gender_map();
-    foreach(string entry in keys(gender))
-        add_menu_item(gender_sel, new_menu_item(capitalize(entry), (: choose_gender($(entry)) :), 0, (: check_race($(entry)) :)));
-    add_menu_item(gender_sel, sep);
-    add_menu_item(gender_sel, new_menu_item("Help", (: gender_sel_help :),          "h"));
-    add_menu_item(gender_sel, new_menu_item("Back", (: toplevel :),  "q"));
+    idx    = 1;
+    foreach(string entry in sort_array(keys(gender), 1))
+        add_menu_item(gender_menu, new_menu_item(capitalize(entry), (: choose_gender, entry :), idx++, 0, (: check_race, entry :)));
+    add_menu_item(gender_menu, sep);
+    add_menu_item(gender_menu, gender_selected = new_seperator("Selected: -"));
+    add_menu_item(gender_menu, new_menu_item("Help", (: help, "gender" :), "h", 1));
+    add_menu_item(gender_menu, top);
 }
 
 public void start_menu(mapping p_info, function cb)
 {
     player_info = p_info;
     call_back   = cb;
-    init_menu_application(toplevel);
+    init_menu_application(main_menu);
 }
 
 // event handler
