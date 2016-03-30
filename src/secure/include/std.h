@@ -48,4 +48,7 @@
 // paths
 #define     TMPDIR          "/tmp"
 
+// standard error messages
+#define     TYPE_ERROR(func, arg, got, expected) \
+    "illigale type to argument " arg " of " func " got <" got "> expected <" expected ">!"
 #endif // __STD_H

@@ -85,7 +85,6 @@ public varargs mapping unique_mapping(mixed *arr, mixed sep, mixed skip)
         }
     }
     else
-        error("wrong type of second argument to unique_mapping (got " +
-                typeof(sep) + " expected string|function)");
+        error(TYPE_ERROR("sefun::unique_mapping", "2", typeof(sep), "string|function"));
 }
 ///  @}
