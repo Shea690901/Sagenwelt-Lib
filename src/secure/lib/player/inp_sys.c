@@ -113,7 +113,7 @@ private nomask void push_handler(function input_func, mixed prompt, int secure, 
 
     info->input_func        = input_func;
     info->prompt            = prompt;
-    info->secure            = secure;
+    info->secure            = secure ? I_NO_ECHO : I_NONE;
     info->return_to_func    = return_to_func;
     info->input_type        = input_type;
     info->lock              = lock;
@@ -121,9 +121,9 @@ private nomask void push_handler(function input_func, mixed prompt, int secure, 
     modal_stack += ({ info });
 
     if(info->input_type & INPUT_CHAR_MODE)
-        efun::get_char((: dispatch_modal_input :), info->secure | 2);
+        efun::get_char((: dispatch_modal_input :), info->secure | I_NO_ESC);
     else
-        efun::input_to((: dispatch_modal_input :), info->secure | 2);
+        efun::input_to((: dispatch_modal_input :), info->secure | I_NO_ESC);
 }
 
 /*
