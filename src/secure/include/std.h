@@ -30,8 +30,8 @@
 
 // input_to flags
 #define     I_NONE          0
-#define     I_NOECHO        1
-#define     I_NOSC          2
+#define     I_NO_ECHO       1
+#define     I_NO_ESC        2
 #define     I_SINGLE_CHAR   4
 
 // save_object flags
