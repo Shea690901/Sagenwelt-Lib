@@ -87,7 +87,6 @@ public string remove_article(string text)
     else
         ret = text;
     return ret;
-
 }
 // --------------------------------------------------------------------------
 /// @brief iwrap 
@@ -125,7 +124,7 @@ public void more(mixed arg, int height = DFLT_SCR_HEIGHT, string input = "")
     if(stringp(arg))
         arg = explode(arg, "\n");
     if(!pointerp(arg))
-        error(sprintf("wrong argument type %s to more, expecting string|string*", gettype(arg)));
+        error(TYPE_ERROR("sefun::more", "1", typeof(arg), "string|string*"));
 
     // write at most sz lines
     sz = sizeof(arg);
