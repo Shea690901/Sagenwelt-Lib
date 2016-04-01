@@ -19,4 +19,8 @@
 #define __LANGUAGE          "English"                   // everything else might be difficult to setup (parser!)
 #define __LOCATION          "Germany"
 
+#define MIN_LEN_PASSWD      10                          // minimum length for new passwords, should he adjusted according
+                                                        // advancements in computing technology
+#define MAX_VALID_PASSWD    365                         // maximum time (in days) until a password change is enforced (-1: disabled)
+
 #endif  // __SEC_CONFIG_H

@@ -2,7 +2,7 @@
 " Language:     LPC
 " Maintainer:   Shizhu Pan <poet@mudbuilder.net>
 " URL:          http://poet.tomud.com/pub/lpc.vim.bz2
-" Last Change:  2016 Mar 25 by Tiger
+" Last Change:  2016 Apr 01 by Tiger
 " Comments:     If you are using Vim 6.2 or later, see :h lpc.vim for file type
 "               recognizing, if not, you had to use modeline.
 " Config:       This is an extended version of the one shipped with vim itself,
@@ -331,12 +331,12 @@ endif
 if b:lpc_mudlib == "Morgengrauen"
 "    syn keyword     lpc_sefuns   abs acos add_action add_worth all_environment allocate and_bits apply nextgroup=lpcSEfunParen
 elseif b:lpc_mudlib == "Sagenwelt"
-    syn keyword lpc_sefuns  contained Dcreatorp Dlordp add_article archp atoi author_of basename blink bold canonical_path
+    syn keyword lpc_sefuns  contained Dcreatorp Dlordp add_article archp atoi author_of basename blink bold canonical_path check_pwd
     syn keyword lpc_sefuns  contained clear_line clear_screen cmp creatorp cred_cmp debug_info destruct dirname distinct_array
     syn keyword lpc_sefuns  contained domain_of done_startup elder erase_line exec fib file_name fnmatch gcd get_cwd get_debug
     syn keyword lpc_sefuns  contained getegid getgid getugid getuid glob gsub has_magic i_wrap init_eids insensitive_pattern
-    syn keyword lpc_sefuns  contained insensitive_regexp inverse itoa lcm m_syslog move_object normal opposite_dir playerp printf
-    syn keyword lpc_sefuns  contained reg_pat_translate regexplode remove_article reset_eval_cost rsearch say scramble_array
+    syn keyword lpc_sefuns  contained insensitive_regexp inverse itoa lcm m_syslog more move_object normal opposite_dir playerp
+    syn keyword lpc_sefuns  contained printf reg_pat_translate regexplode remove_article reset_eval_cost rsearch say scramble_array
     syn keyword lpc_sefuns  contained search set_bg_color set_debug set_eval_limit set_fg_color setegid seteuid shout shutdown
     syn keyword lpc_sefuns  contained simul_efun split sub syslog tell_object tell_room underscore unique_mapping up_line write
 endif
@@ -526,8 +526,9 @@ endif
 
 " LPC Constants.
 " like keywords, constants are always highlighted
-if b:lpc_driver == "LDMud"              " {{{2
-elseif b:lpc_driver == "MudOS"          " {{{2
+" driver supplied {{{2
+if b:lpc_driver == "LDMud"              " {{{3
+elseif b:lpc_driver == "MudOS"          " {{{3
     " be careful to choose only
     " the constants we used to add to this list.
     syn keyword     lpcConstant     __ARCH__ __COMPILER__ __DIR__ __FILE__ __OPTIMIZATION__ __PORT__ __VERSION__
@@ -538,7 +539,7 @@ elseif b:lpc_driver == "MudOS"          " {{{2
     "       backward compatibility and should not be used any more.
     syn keyword     lpcConstant     HAS_ED HAS_PRINTF HAS_RUSAGE HAS_DEBUG_LEVEL
     syn keyword     lpcConstant     MUD_NAME F__THIS_OBJECT
-elseif b:lpc_driver == "FluffOS"        " {{{2
+elseif b:lpc_driver == "FluffOS"        " {{{3
     syn keyword     lpcConstant     FLUFFOS HAS_DEBUG_LEVEL HAS_ED HAS_PRINTF HAS_RUSAGE MAX_FLOAT MAX_INT MIN_FLOAT MIN_INT
     syn keyword     lpcConstant     MUDOS MUD_NAME SIZEOFINT __ARCH__ __ARGUMENTS_IN_TRACEBACK__ __ARRAY_RESERVED_WORD__
     syn keyword     lpcConstant     __ARRAY_STATS__ __AUTO_SETEUID__ __AUTO_TRUST_BACKBONE__ __CACHE_STATS__ __CALLOUT_HANDLES__
@@ -566,6 +567,13 @@ elseif b:lpc_driver == "FluffOS"        " {{{2
     syn keyword     lpcConstant     __THIS_PLAYER_IN_CALL_OUT__ __TRACE_CODE__ __TRACE__ __TRAP_CRASHES__ __USE_32BIT_ADDRESSES__
     syn keyword     lpcConstant     __USE_ICONV__ __USE_MSQL__ __USE_MYSQL__ __USE_POSTGRES__ __USE_SQLITE3__ __VERSION__
     syn keyword     lpcConstant     __WARN_OLD_RANGE_BEHAVIOR__ __WOMBLES__
+endif
+" mudlib supplied {{{2
+if b:lpc_mudlib == "Sagenwelt"
+    syn keyword     lpcConstant     DFLT_SCR_HEIGHT DFLT_SCR_INDENT DFLT_SCR_WIDTH FALSE I_NONE I_NO_ECHO I_NO_ESC I_SINGLE_CHAR PO
+    syn keyword     lpcConstant     SEC_PWD_LOWER SEC_PWD_NUMBER SEC_PWD_OK SEC_PWD_OTHER SEC_PWD_SHORT SEC_PWD_UPPER SO_NONE
+    syn keyword     lpcConstant     SO_NONE SO_SAVE_GZ SO_SAVE_GZ SO_SAVE_ZERO SO_SAVE_ZERO TI TMPDIR TO TP TRUE TYPE_ERROR
+    syn keyword     lpcConstant     __LIB_VERSION
 endif
 " Nodule: String and Character {{{1
 

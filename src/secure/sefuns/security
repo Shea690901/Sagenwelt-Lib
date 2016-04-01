@@ -12,8 +12,8 @@ public void set_author(string arg)
 }
 
 // --------------------------------------------------------------------------
-/// @brief getgid 
-/// 
+/// @brief getgid
+///
 /// @Param who - defaults to this_object()
 /// @Returns real group id
 // --------------------------------------------------------------------------
@@ -25,8 +25,8 @@ public string getgid(mixed who = 0)
     return explode(efun::getuid(who), ":")[1];
 }
 // --------------------------------------------------------------------------
-/// @brief getegid 
-/// 
+/// @brief getegid
+///
 /// @Param who - defaults to this_object()
 /// @Returns effective group id
 // --------------------------------------------------------------------------
@@ -44,8 +44,8 @@ public string getegid(mixed who = 0)
         return explode(ret, ":")[1];
 }
 // --------------------------------------------------------------------------
-/// @brief setegid 
-/// 
+/// @brief setegid
+///
 /// @Param gid
 /// @Returns 1 if successfully set, 0 otherwise
 // --------------------------------------------------------------------------
@@ -58,8 +58,8 @@ public int setegid(string egid)
     return evalute(f, arg);
 }
 // --------------------------------------------------------------------------
-/// @brief getuid 
-/// 
+/// @brief getuid
+///
 /// @Param who - defaults to this_object()
 /// @Returns real user id
 // --------------------------------------------------------------------------
@@ -71,8 +71,8 @@ public string getuid(mixed who = 0)
     return explode(efun::getuid(who), ":")[0];
 }
 // --------------------------------------------------------------------------
-/// @brief geteuid 
-/// 
+/// @brief geteuid
+///
 /// @Param who - defaults to this_object()
 /// @Returns effective user id
 // --------------------------------------------------------------------------
@@ -90,8 +90,8 @@ public string geteuid(mixed who = 0)
         return explode(ret, ":")[0];
 }
 // --------------------------------------------------------------------------
-/// @brief seteuid 
-/// 
+/// @brief seteuid
+///
 /// @Param euid
 /// @Returns 1 if successfully set, 0 otherwise
 // --------------------------------------------------------------------------
@@ -104,7 +104,7 @@ public int seteuid(string euid)
     return evalute(f, arg);
 }
 // --------------------------------------------------------------------------
-/// @brief init_eids 
+/// @brief init_eids
 ///
 /// This function must be called within each object that wants to do any
 /// security relevant action (e.g. read/write files, clone other objects, ...)
@@ -119,7 +119,7 @@ public int init_eteids(void)
 }
 
 // --------------------------------------------------------------------------
-/// @brief cred_cmp 
+/// @brief cred_cmp
 ///
 /// This function compares the credentials for the given objects
 /// @Param cred1 - string or object
@@ -231,7 +231,7 @@ public int cred_cmp(object cred1, object cred2)
 }
 
 // --------------------------------------------------------------------------
-/// @brief playerp 
+/// @brief playerp
 ///
 /// This function tests if the supplied object is a player
 /// @Returns TRUE/FALSE depending on result
@@ -241,7 +241,7 @@ public int playerp(object ob)
     return ob == find_player(getuid(ob));
 }
 // --------------------------------------------------------------------------
-/// @brief elderp 
+/// @brief elderp
 ///
 /// This function tests if the supplied object has elder rights
 /// @Returns TRUE/FALSE depending on result
@@ -251,7 +251,7 @@ public int elder(object ob)
     return playerp(ob) && (member_array(UPRIV_ELDER, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 // --------------------------------------------------------------------------
-/// @brief creatorp 
+/// @brief creatorp
 ///
 /// This function tests if the supplied object has creator rights (is wizard)
 /// @Returns TRUE/FALSE depending on result
@@ -261,7 +261,7 @@ public int creatorp(object ob)
     return playerp(ob) && (member_array(UPRIV_WIZARD, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 // --------------------------------------------------------------------------
-/// @brief Dcreatorp 
+/// @brief Dcreatorp
 ///
 /// This function tests if the supplied object has creator rights (is wizard)
 /// and is member of either the supplied or any domain
@@ -290,7 +290,7 @@ public int Dcreatorp(object ob, string domain = "@any@")
     return member_array(uid, (string)MUD_INFO_D->get_domain_member(domain)) != -1;
 }
 // --------------------------------------------------------------------------
-/// @brief Dlordp 
+/// @brief Dlordp
 ///
 /// This function tests if the supplied object has creator rights (is wizard)
 /// and is domain lord of either the supplied or any domain
@@ -321,7 +321,7 @@ public int Dlordp(object ob, string domain = "@any@")
     return member_array(uid, (string)MUD_INFO_D->get_domain_lords(domain)) != -1;
 }
 // --------------------------------------------------------------------------
-/// @brief archp 
+/// @brief archp
 ///
 /// This function tests if the supplied object has archwiz rights
 /// @Returns TRUE/FALSE depending on result
@@ -331,7 +331,7 @@ public int archp(object ob)
     return creatorp(ob) && (member_array(UPRIV_ARCH, (string)MUD_INFO_D->getgroups(geteuid(ob))) != -1);
 }
 // --------------------------------------------------------------------------
-/// @brief adminp 
+/// @brief adminp
 ///
 /// This function tests if the supplied object has admin rights
 /// @Returns TRUE/FALSE depending on result
@@ -339,5 +339,39 @@ public int archp(object ob)
 public int adminp(object ob)
 {
     return creatorp(ob) && (member_array(UPRIV_ADMIN, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
+}
+
+// --------------------------------------------------------------------------
+/// @brief check_pwd
+///
+/// This function checks if a given string qualifies as password
+/// @Param pwd
+/// @Returns - SEC_PWD_OK if all tests passed
+///            bitfield (int) depending on which tests failed
+// --------------------------------------------------------------------------
+public int check_pwd(string pwd)
+{
+    int ret = SEC_PWD_OK;
+
+    // a little short the password...
+    if(strlen(pwd) <= MIN_LEN_PASSWD)
+        ret |= SEC_PWD_SHORT;
+    // without any lowercase letter? not good...
+    if(!sizeof(regexp(({pwd}), "[a-z]")))
+        ret |= SEC_PWD_LOWER;
+    // neither is without any upper case letter...
+    if(!sizeof(regexp(({pwd}), "[A-Z]")))
+        ret |= SEC_PWD_UPPER;
+    // any number...
+    if(!sizeof(regexp(({pwd}), "[0-9]")))
+        ret |= SEC_PWD_NUMBER;
+    // or any punctuation and other symbols...
+    if(!sizeof(regexp(({pwd}), "[.,;:!?_ +-]")))
+        ret |= SEC_PWD_OTHER;
+    // possible other checks:
+    // - simple dictionary lookup
+    // - cracklib support
+    // - ...
+    return ret;
 }
 ///  @}

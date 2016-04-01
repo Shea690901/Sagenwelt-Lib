@@ -14,6 +14,13 @@
 #include <messages.h>       // needed for communication
 
 // preprocessor macros for sefuns
+#define SEC_PWD_OK      0   // return code of check_pwd (all tests passed)
+// error codes of check_pwd (bitfield[int])
+#define SEC_PWD_SHORT   1
+#define SEC_PWD_LOWER   2
+#define SEC_PWD_UPPER   4
+#define SEC_PWD_NUMBER  8
+#define SEC_PWD_OTHER  16
 
 // function prototypes (ordered by groups)
 // simul_efun_helper
@@ -81,19 +88,22 @@ public          string   setegid(string egid);
 public          string   getuid(mixed who);
 public          string   getugid(mixed who);
 public          string   seteuid(string euid);
-public          int      cred_cmp(mixed cred1, mixed cred2, int f = CRED_CMP_EGID);
+public          int      cred_cmp(object cred1, object cred2);
 
-public          int      playerp(object ob);
-public          int      elder(object ob);
+public          int      archp(object ob);
 public          int      creatorp(object ob);
 public          int      Dcreatorp(object ob, string domain = "@any@");
 public          int      Dlordp(object ob, string domain = "@any@");
-public          int      archp(object ob);
+public          int      elder(object ob);
+public          int      playerp(object ob);
+
+public          int      check_pwd(string pwd);
 // strings
 public          int      atoi(string arg);
 public          string   itoa(int arg);
 public          string   add_article(string text, int flag = 0);
-public          string   i_wrap(string text, int width = 80, int indent = 4);
+public          string   i_wrap(string text, int width = DFLT_SCR_WIDTH, int indent = DFLT_SCR_INDENT);
+public          void     more(mixed arg, int height = DFLT_SCR_HEIGHT, string input = "");
 public          string   remove_article(string text);
 // terminal
 public          string   blink(string str);
