@@ -313,7 +313,7 @@
 
 /*PACKAGE_CRYPTO: adds a function that does multiple hash types hash(hash,
  * string), needs openssl lib and includes and -lssl in system_libs*/
-#undef PACKAGE_CRYPTO
+#define PACKAGE_CRYPTO
 
 /*
   PACKAGE_TRIM: efuns for remove leading / trailing whitepsaces (or chars in
