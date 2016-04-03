@@ -23,4 +23,6 @@
                                                         // advancements in computing technology
 #define MAX_VALID_PASSWD    365                         // maximum time (in days) until a password change is enforced (-1: disabled)
 
+#define PWD_CRYPT_DFLT      PWD_CRYPT_SHA1              // see </secure/include/simul_erun.h> for other options
+
 #endif  // __SEC_CONFIG_H

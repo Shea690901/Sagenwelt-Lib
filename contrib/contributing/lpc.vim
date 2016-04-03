@@ -2,7 +2,7 @@
 " Language:     LPC
 " Maintainer:   Shizhu Pan <poet@mudbuilder.net>
 " URL:          http://poet.tomud.com/pub/lpc.vim.bz2
-" Last Change:  2016 Apr 01 by Tiger
+" Last Change:  2016 Apr 03 by Tiger
 " Comments:     If you are using Vim 6.2 or later, see :h lpc.vim for file type
 "               recognizing, if not, you had to use modeline.
 " Config:       This is an extended version of the one shipped with vim itself,
@@ -59,6 +59,9 @@
 "               b:lpc_old_ed:
 "                               (default 0)
 "               b:lpc_use_iconv:
+"                               (default 1)
+"
+"               b:lpc_package_crypto:
 "                               (default 1)
 "
 "               Additional following settings from 'c.vim' are recognized:
@@ -135,16 +138,16 @@ if !exists("b:lpc_driver")
     let b:lpc_driver = "FluffOS"    " default driver
 endif
 
-if b:lpc_driver == "MudOS"
+if b:lpc_driver == "MudOS"          " {{{2
     if !exists("b:lpc_pre_v22")
         let b:lpc_pre_v22 = 0
     endif
     if !exists("b:lpc_compat_32")
         let b:lpc_compat_32 = 0
     endif
-elseif b:lpc_driver == "FluffOS"
+elseif b:lpc_driver == "FluffOS"    " {{{2
     let s:lpc_driver_has_closures = 0   " fluffos doesn't use closures
-" some default settings for core package {{{2
+" some default settings for core package {{{3
     if !exists("b:lpc_compat32")
         let b:lpc_compat32 = 0
     endif
@@ -180,10 +183,14 @@ elseif b:lpc_driver == "FluffOS"
     endif
     if !exists("b:lpc_use_iconv")
         let b:lpc_use_iconv = 1
-    endif                               " }}}
-elseif b:lpc_driver == "LDMud"
+    endif
+" supported packages {{{3
+    if !exists("b:lpc_package_crypto")
+        let b:lpc_package_crypto = 1
+    endif
+elseif b:lpc_driver == "LDMud"      " {{{2
     let s:lpc_driver_has_closures = 1
-endif
+endif                               " }}}2
 
 syn sync fromstart
 
@@ -331,14 +338,15 @@ endif
 if b:lpc_mudlib == "Morgengrauen"
 "    syn keyword     lpc_sefuns   abs acos add_action add_worth all_environment allocate and_bits apply nextgroup=lpcSEfunParen
 elseif b:lpc_mudlib == "Sagenwelt"
-    syn keyword lpc_sefuns  contained Dcreatorp Dlordp add_article archp atoi author_of basename blink bold canonical_path check_pwd
-    syn keyword lpc_sefuns  contained clear_line clear_screen cmp creatorp cred_cmp debug_info destruct dirname distinct_array
-    syn keyword lpc_sefuns  contained domain_of done_startup elder erase_line exec fib file_name fnmatch gcd get_cwd get_debug
-    syn keyword lpc_sefuns  contained getegid getgid getugid getuid glob gsub has_magic i_wrap init_eids insensitive_pattern
-    syn keyword lpc_sefuns  contained insensitive_regexp inverse itoa lcm m_syslog more move_object normal opposite_dir playerp
-    syn keyword lpc_sefuns  contained printf reg_pat_translate regexplode remove_article reset_eval_cost rsearch say scramble_array
-    syn keyword lpc_sefuns  contained search set_bg_color set_debug set_eval_limit set_fg_color setegid seteuid shout shutdown
-    syn keyword lpc_sefuns  contained simul_efun split sub syslog tell_object tell_room underscore unique_mapping up_line write
+    syn keyword lpc_sefuns  contained Dcreatorp Dlordp add_article archp atoi author_of basename blink bold canonical_path
+    syn keyword lpc_sefuns  contained check_valid_pwd clear_line clear_screen cmp creatorp cred_cmp debug_info destruct dirname
+    syn keyword lpc_sefuns  contained distinct_array domain_of done_startup elder erase_line exec fib file_name fnmatch gcd get_cwd
+    syn keyword lpc_sefuns  contained get_debug getegid getgid getugid getuid glob gsub has_magic i_wrap init_eids
+    syn keyword lpc_sefuns  contained insensitive_pattern insensitive_regexp inverse itoa lcm m_syslog more move_object normal
+    syn keyword lpc_sefuns  contained opposite_dir playerp printf reg_pat_translate regexplode remove_article reset_eval_cost rsearch
+    syn keyword lpc_sefuns  contained say scramble_array search set_bg_color set_debug set_eval_limit set_fg_color setegid seteuid
+    syn keyword lpc_sefuns  contained shout shutdown simul_efun split sub syslog tell_object tell_room underscore unique_mapping
+    syn keyword lpc_sefuns  contained up_line write
 endif
 " Nodule: Efuns {{{1
 " sorted by driver
@@ -520,6 +528,11 @@ elseif b:lpc_driver == "FluffOS"         " {{{2
     else
         syn keyword     lpcOldEfuns arr_to_str set_encoding str_to_arr to_utf8 utf8_to
     endif
+    if b:lpc_package_crypto
+        syn keyword     lpc_efuns   contained hash
+    else
+        syn keyword     lpcOldEfuns hash
+    endif
 endif
 " Nodule: Constants {{{1
 " sorted by driver
@@ -570,7 +583,9 @@ elseif b:lpc_driver == "FluffOS"        " {{{3
 endif
 " mudlib supplied {{{2
 if b:lpc_mudlib == "Sagenwelt"
-    syn keyword     lpcConstant     DFLT_SCR_HEIGHT DFLT_SCR_INDENT DFLT_SCR_WIDTH FALSE I_NONE I_NO_ECHO I_NO_ESC I_SINGLE_CHAR PO
+    syn keyword     lpcConstant     DFLT_SCR_HEIGHT DFLT_SCR_INDENT DFLT_SCR_WIDTH FALSE I_NONE I_NO_ECHO I_NO_ESC I_SINGLE_CHAR
+    syn keyword     lpcConstant     PO PWD_CRYPT_DFLT PWD_CRYPT_MD2 PWD_CRYPT_MD4 PWD_CRYPT_MD5 PWD_CRYPT_MDC2 PWD_CRYPT_RIPEMD160
+    syn keyword     lpcConstant     PWD_CRYPT_SHA1 PWD_CRYPT_SHA224 PWD_CRYPT_SHA256 PWD_CRYPT_SHA384 PWD_CRYPT_SHA512
     syn keyword     lpcConstant     SEC_PWD_LOWER SEC_PWD_NUMBER SEC_PWD_OK SEC_PWD_OTHER SEC_PWD_SHORT SEC_PWD_UPPER SO_NONE
     syn keyword     lpcConstant     SO_NONE SO_SAVE_GZ SO_SAVE_GZ SO_SAVE_ZERO SO_SAVE_ZERO TI TMPDIR TO TP TRUE TYPE_ERROR
     syn keyword     lpcConstant     __LIB_VERSION

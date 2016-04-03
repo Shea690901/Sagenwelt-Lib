@@ -3,14 +3,15 @@
 ///
 /// This file is automatically included in _every_ *.c
 /// @author Gwenhwyvar
-/// @version 0.0.0
-/// @date 2015-12-14
+/// @version 0.1.0
+/// @date 2016-04-03
 
 #ifndef __STD_H
 #define __STD_H
 
-#include <config.h>
+#include <simul_efun.h>
 #include <driver/runtime_config.h>
+#include <config.h>
 
 #define     __LIB_VERSION   "0.0.0"
 
@@ -51,4 +52,5 @@
 // standard error messages
 #define     TYPE_ERROR(func, arg, got, expected) \
     "illigale type to argument " arg " of " func " got <" got "> expected <" expected ">!"
+
 #endif // __STD_H

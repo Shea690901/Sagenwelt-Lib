@@ -3,8 +3,8 @@
 /// @file simul_efun.c
 /// @brief simulated efuns
 /// @author Gwenhwyvar
-/// @version 0.1.0
-/// @date 2015-11-29
+/// @version 0.2.0
+/// @date 2016-04-03
 
 #include    <simul_efun.h>
 #include    <simul_efun_intern.h>
@@ -17,6 +17,7 @@
 #include    SEFUN_DIR "logging"
 #include    SEFUN_DIR "math"
 #include    SEFUN_DIR "objects"
+#include    SEFUN_DIR "passwd"
 #include    SEFUN_DIR "regex_globbing"
 #include    SEFUN_DIR "room"
 #include    SEFUN_DIR "security"
@@ -51,4 +52,5 @@ public void event_shutdown(void)
     if(origin() != ORIGIN_EFUN)
         return;
 }
+
 /// @}

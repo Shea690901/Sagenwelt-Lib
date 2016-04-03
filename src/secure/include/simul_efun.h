@@ -14,13 +14,26 @@
 #include <messages.h>       // needed for communication
 
 // preprocessor macros for sefuns
-#define SEC_PWD_OK      0   // return code of check_pwd (all tests passed)
-// error codes of check_pwd (bitfield[int])
+#define SEC_PWD_OK      0   // return code of sefun::check_pwd (all tests passed)
+// error codes of sefun::check_pwd (bitfield[int])
 #define SEC_PWD_SHORT   1
 #define SEC_PWD_LOWER   2
 #define SEC_PWD_UPPER   4
 #define SEC_PWD_NUMBER  8
 #define SEC_PWD_OTHER  16
+
+// message digests supported by sefun::crypt
+// depending on compiletime settings for openssl some might be not available
+#define PWD_CRYPT_MD2       "md2"
+#define PWD_CRYPT_MD4       "md4"
+#define PWD_CRYPT_MD5       "md5"
+#define PWD_CRYPT_MDC2      "mdc2"
+#define PWD_CRYPT_RIPEMD160 "ripemd160"
+#define PWD_CRYPT_SHA1      "sha1"
+#define PWD_CRYPT_SHA224    "sha224"
+#define PWD_CRYPT_SHA256    "sha256"
+#define PWD_CRYPT_SHA384    "sha384"
+#define PWD_CRYPT_SHA512    "sha512"
 
 // function prototypes (ordered by groups)
 // simul_efun_helper
@@ -65,6 +78,10 @@ public varargs  void     destruct(object ob);
 public          string   file_name(object who = 0, int flag = 0);
 public varargs  int      move_object(object ob1, object ob2);
 public          object   simul_efun(void);
+// passwd
+public          int      check_valid_pwd(string pwd);
+public          string   crypt(string pwd, string salt = "", string hash = PWD_CRYPT_DFLT);
+public          string   oldcrypt(string pwd, mixed salt);
 // regex_globbing
 public          int      fnmatch(string name, string pattern);
 public          string  *glob(mixed pathname);

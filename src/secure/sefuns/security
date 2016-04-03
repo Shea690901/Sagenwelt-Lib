@@ -341,37 +341,4 @@ public int adminp(object ob)
     return creatorp(ob) && (member_array(UPRIV_ADMIN, (string)MUD_INFO_D->get_groups(getuid(ob))) != -1);
 }
 
-// --------------------------------------------------------------------------
-/// @brief check_pwd
-///
-/// This function checks if a given string qualifies as password
-/// @Param pwd
-/// @Returns - SEC_PWD_OK if all tests passed
-///            bitfield (int) depending on which tests failed
-// --------------------------------------------------------------------------
-public int check_pwd(string pwd)
-{
-    int ret = SEC_PWD_OK;
-
-    // a little short the password...
-    if(strlen(pwd) <= MIN_LEN_PASSWD)
-        ret |= SEC_PWD_SHORT;
-    // without any lowercase letter? not good...
-    if(!sizeof(regexp(({pwd}), "[a-z]")))
-        ret |= SEC_PWD_LOWER;
-    // neither is without any upper case letter...
-    if(!sizeof(regexp(({pwd}), "[A-Z]")))
-        ret |= SEC_PWD_UPPER;
-    // any number...
-    if(!sizeof(regexp(({pwd}), "[0-9]")))
-        ret |= SEC_PWD_NUMBER;
-    // or any punctuation and other symbols...
-    if(!sizeof(regexp(({pwd}), "[.,;:!?_ +-]")))
-        ret |= SEC_PWD_OTHER;
-    // possible other checks:
-    // - simple dictionary lookup
-    // - cracklib support
-    // - ...
-    return ret;
-}
 ///  @}
