@@ -20,41 +20,10 @@
 ** add a security check in the input callback.
 */
 
-#include <menu.h>
 #include <playes/inp_sys.h>
+#include <menu.h>
 
 inherit M_INPUT;
-
-struct menu_item
-{
-    string      description;
-    mixed       action;
-    int         disabled;
-    mixed       choice_name;        // should be a string if the user sets it.
-    int         prompt_after_action;
-    function    constraint;
-    // A seperator is just a line of text, and not something that
-    // can be chosen.  Therefore, action, choice_name, and
-    // prompt_after_selection are meaningless if this is non-zero.
-    int         seperator;
-}
-
-struct menu
-{
-    // Items should only ever be MENU_ITEM*'s or string*'s, and
-    // should be of uniform type.  If this is of type string,
-    // The menu won't display options.
-    // And if items is a string*, you'd better have a no_match_function,
-    // because there won't be any MENU_ITEMS to match against.
-    mixed     * items;
-    mixed       title;
-    mixed       prompt;
-    int         allow_enter;
-    function    no_match_function;
-    int         num_columns;
-    int         dont_complete;
-    string    * current_choices;
-}
 
 MENU    current_menu,
         previous_menu;
@@ -105,7 +74,7 @@ protected varargs MENU_ITEM new_seperator(string description, function constrain
     return new_menu_item;
 }
 
-protected varargs MENU_ITEM new_menu_item(string description, mixed action, string choice_name, int prompt, function constraint)
+protected varargs MENU_ITEM new_menu_item(string description, mixed action, mixed choice_name, int prompt, function constraint)
 {
     MENU_ITEM new_menu_item = new(MENU_ITEM);
 
@@ -184,7 +153,7 @@ protected void set_menu_item_action(MENU_ITEM item, mixed action)
     item->action = action;
 }
 
-protected void set_menu_item_choice_name(MENU_ITEM item, string choice_name)
+protected void set_menu_item_choice_name(MENU_ITEM item, mixed choice_name)
 {
     item->choice_name = choice_name;
 }
