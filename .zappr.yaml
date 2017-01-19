@@ -1,0 +1,27 @@
+# this is how you configure zappr
+# a more exhaustive description is at
+# https://zappr.readthedocs.io/en/latest/setup
+
+# uncomment this if you want to change anything
+approvals:
+    pattern: "^(:\\+1:|👍)" # must start with thumbs up
+    minimum: 1
+    ignore: pr_opener # do not count approval from PR opener
+    groups:
+      admin:
+        minimum: 1
+        from:
+          users:
+          - Shea690901
+
+autobranch:
+  pattern: {number}-{title}
+  length: 60
+  
+pull-request:
+  labels:
+    # pull request cannot be merged without these labels
+    required:
+      - reviewed
+    # allow additional labels to be present. true is the default..
+    additional: true
