@@ -2,6 +2,7 @@
 
 [![License - GPL-2](https://img.shields.io/badge/licence-gpl--2-blue.svg)](LICENSE)
 [![STYLECI](https://styleci.io/repos/46893775/shield)](https://styleci.io/repos/46893775/)
+[![ZenHub ](https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png)](https://zenhub.com/)
 [![GitHub version](https://badge.fury.io/gh/Shea690901%2FSagenwelt-Lib.svg)](https://badge.fury.io/gh/Shea690901%2FSagenwelt-Lib)
 Project stats: https://www.openhub.net/p/Sagenwelt-Lib
 
